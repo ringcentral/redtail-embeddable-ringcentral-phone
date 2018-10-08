@@ -10,6 +10,7 @@
     "tabs",
     "background",
     "tabCapture",
+    "system.display",
     "https://*.redtailtechnology.com/*"
   ],
   "page_action": {

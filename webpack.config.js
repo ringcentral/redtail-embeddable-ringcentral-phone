@@ -26,13 +26,26 @@ const opts = {
   minBytes: 3789
 }
 const {version} = pack
+
+let {
+  clientID,
+  appServer
+} = sysConfigDefault.ringCentralConfigs
+
+let appConfigQuery = ''
+if (clientID || appServer) {
+  appConfigQuery = `?clientID=${clientID}&appServer=${encodeURIComponent(appServer)}`
+}
+
 const pug = {
   loader: 'pug-html-loader',
   options: {
     data: {
       version,
+      appConfigQuery,
       _global: {
-        version
+        version,
+        appConfigQuery
       }
     }
   }
@@ -42,6 +55,7 @@ var config = {
   mode: 'production',
   entry: {
     content: './src/chrome-extension/content.js',
+    background: './src/chrome-extension/background.js',
     app: './src/app/app.js',
     standalone: './src/app/standalone.pug'
   },

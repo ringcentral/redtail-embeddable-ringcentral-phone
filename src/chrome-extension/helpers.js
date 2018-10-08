@@ -6,6 +6,16 @@ export const RCBTNCLS = 'call-with-ringccentral-btn'
 export const RCBTNCLS2 = 'call-with-rc-btn'
 export const RCTOOLTIPCLS = 'rc-tooltip'
 
+export function addRuntimeEventListener(cb) {
+  chrome.runtime.onMessage.addListener(cb)
+}
+
+export async function sendMsgToBackground(msg) {
+  return new Promise(resolve => {
+    chrome.runtime.sendMessage(msg, resolve)
+  })
+}
+
 export function checkPhoneNumber(phone, country = 'US') {
   return !_.isEqual(
     {},
@@ -20,24 +30,21 @@ export function createElementFromHTML(htmlString) {
 }
 
 export function popup() {
-  document.querySelector('#rc-widget-adapter-frame').contentWindow.postMessage({
-    type: 'rc-adapter-syncMinimized',
-    minimized: false
-  }, '*')
-  window.postMessage({
-    type: 'rc-adapter-syncMinimized',
-    minimized: false
-  }, '*')
+  sendMsgToBackground({
+    action: 'popup'
+  })
 }
 
 export function callWithRingCentral(phoneNumber, callAtOnce = true) {
   popup()
-  document.querySelector('#rc-widget-adapter-frame').contentWindow.postMessage({
-    type: 'rc-adapter-new-call',
-    phoneNumber,
-    toCall: callAtOnce
-  }, '*')
-
+  sendMsgToBackground({
+    to: 'standalone',
+    data: {
+      type: 'rc-adapter-new-call',
+      phoneNumber,
+      toCall: callAtOnce
+    }
+  })
 }
 
 let events = []

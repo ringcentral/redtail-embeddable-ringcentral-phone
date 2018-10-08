@@ -81,26 +81,95 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 100);
+/******/ 	return __webpack_require__(__webpack_require__.s = 110);
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ 100:
+/***/ 1:
+/***/ (function(module, exports) {
+
+/**
+ * Checks if `value` is classified as an `Array` object.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is an array, else `false`.
+ * @example
+ *
+ * _.isArray([1, 2, 3]);
+ * // => true
+ *
+ * _.isArray(document.body.children);
+ * // => false
+ *
+ * _.isArray('abc');
+ * // => false
+ *
+ * _.isArray(_.noop);
+ * // => false
+ */
+var isArray = Array.isArray;
+
+module.exports = isArray;
+
+
+/***/ }),
+
+/***/ 110:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-;(function () {
-  console.log('sdfsd');
-  console.log('sdfsd');
-  console.log('sdfsd');
-  console.log('sdfsd');
-  console.log('sdfsd');
-  console.log('sdfsd');
-  console.log('sdfsd');
-})();
+var _isArray2 = __webpack_require__(1);
+
+var _isArray3 = _interopRequireDefault(_isArray2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * send all window.postMessage to chrome extension background page, proxed to content.js
+ */
+
+function sendMsg(data) {
+  document.querySelector('#rc-widget-adapter-frame').contentWindow.postMessage(data, '*');
+}
+
+function onMsg(e) {
+  console.log('send msg to content.js from standalone.js');
+  console.log(e.data);
+  chrome.runtime.sendMessage({
+    data: e.data,
+    to: 'content'
+  }, res => {
+    console.log('send msg to content.js from standalone.js, get response');
+    console.log(res);
+    let arr = (0, _isArray3.default)(res) ? res : [res];
+    for (let obj of arr) {
+      if (obj) {
+        sendMsg(obj);
+      }
+    }
+  });
+}
+
+function init() {
+  window.addEventListener('message', onMsg);
+  chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    if (request.to === 'standalone') {
+      console.log('get msg from content.js to standalone.js');
+      console.log(request.data);
+      sendMsg(request.data);
+      sendResponse();
+    }
+  });
+}
+
+window.addEventListener('load', init);
 
 /***/ })
 

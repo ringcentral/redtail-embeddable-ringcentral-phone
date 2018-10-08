@@ -4,9 +4,6 @@ import initThirdPartyApi from './third-party-api'
 import insertClickToCall from './insert-click-to-call-button'
 import addHoverEvent from './hover-to-show-call-button'
 import convertPhoneLink from './make-phone-number-clickable'
-import {
-  popup
-} from './helpers'
 import './style.styl'
 import './custom.styl'
 
