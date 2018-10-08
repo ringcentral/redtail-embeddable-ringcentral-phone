@@ -11,15 +11,6 @@ import './style.styl'
 import './custom.styl'
 
 function registerService() {
-  // Listen message from background.js to open app window when user click icon.
-  chrome.runtime.onMessage.addListener(
-    function(request, sender, sendResponse) {
-      if (request.action === 'openAppWindow') {
-        popup()
-      }
-      sendResponse('ok')
-    }
-  )
 
   // handle contacts sync feature
   initThirdPartyApi()

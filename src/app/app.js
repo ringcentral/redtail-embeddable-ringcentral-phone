@@ -1,9 +1,3 @@
-;(function() {
-  console.log('sdfsd')
-  console.log('sdfsd')
-  console.log('sdfsd')
-  console.log('sdfsd')
-  console.log('sdfsd')
-  console.log('sdfsd')
-  console.log('sdfsd')
-})()
+import main from './init'
+
+window.addEventListener('load', main)
