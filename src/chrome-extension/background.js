@@ -12,7 +12,7 @@ function getDisplayInfo() {
 
 function popup() {
   if (!standaloneWindow) {
-    initStandaloneWindow()
+    return initStandaloneWindow()
   }
   standaloneWindow.update(
     standaloneWindow.id,
@@ -41,6 +41,10 @@ async function initStandaloneWindow() {
       top: parseInt(height, 10) - 536
     }, function (wind) {
       standaloneWindow = wind
+      sendMsgToContent({
+        action: 'widgets-window-state-notify',
+        widgetsOpened: true
+      })
     })
   } else {
     chrome.windows.update(standaloneWindow.id, {
@@ -87,37 +91,49 @@ function checkTab(tab) {
     tab.url.includes('redtailtechnology.com')
 }
 
-async function onTabEvent(tabId, action, changeInfo) {
-  let tab = await new Promise((resolve) => {
-    chrome.tabs.get(tabId, resolve)
+function getTabFromId(id) {
+  return new Promise((resolve) => {
+    chrome.tabs.get(id, resolve)
   })
+    .catch(() => {id})
+}
+
+async function onTabEvent(_tab, action, changeInfo) {
+  let tab = _.isPlainObject(_tab)
+    ? _tab
+    : await getTabFromId(_tab)
+  let {id} = tab
   if (
     checkTab(tab)
   ) {
+    console.log('checktab pass', action)
     if (action !== 'remove') {
-      chrome.pageAction.show(tab.id)
+      chrome.pageAction.show(id)
     }
     if (action === 'add') {
-      activeTabIds.add(tab.id)
+      console.log('tab add')
+      activeTabIds.add(id)
     } else if (action === 'remove') {
-      activeTabIds.remove(tab.id)
+      activeTabIds.remove(id)
+    } else if (action === 'update') {
+      activeTabIds.add(id)
     }
     return
   } else if (
-    action === 'update' && changeInfo.url
+    action === 'update'
   ) {
-    activeTabIds.remove(tab.id)
+    activeTabIds.delete(id)
   }
 }
 
-chrome.tabs.onCreated.addListener(tabId => {
-  onTabEvent(tabId, 'add')
+chrome.tabs.onCreated.addListener(tab => {
+  onTabEvent(tab, 'add')
 })
-chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
-  onTabEvent(tabId, 'update', changeInfo)
+chrome.tabs.onUpdated.addListener((tab, changeInfo) => {
+  onTabEvent(tab, 'update', changeInfo)
 })
-chrome.tabs.onRemoved.addListener(tabId => {
-  onTabEvent(tabId, 'remove')
+chrome.tabs.onRemoved.addListener(tab => {
+  onTabEvent(tab, 'remove')
 })
 
 chrome.pageAction.onClicked.addListener(function (tab) {

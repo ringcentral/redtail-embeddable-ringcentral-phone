@@ -35,18 +35,17 @@ export default async () => {
      </div>
     `
   )
-  let exist = document.getElementById('rc-init-ext-wrap')
-  if (!exist) {
-    dom.onclick = onClickInitExt()
+  dom.onclick = onClickInitExt
+  let btn = document.getElementById('rc-init-ext-wrap')
+  if (!btn) {
     document.body.appendChild(dom)
-    exist = dom
+    btn = dom
   }
-  toggleInitButton(exist, widgetsOpened)
+  toggleInitButton(btn, widgetsOpened)
   addRuntimeEventListener(
     function(request, sender, sendResponse) {
       if (request.action === 'widgets-window-state-notify') {
-        toggleInitButton(exist, request.widgetsOpened)
-        exist.classList.remove('rc-show-init')
+        toggleInitButton(btn, request.widgetsOpened)
       }
       sendResponse()
     }
