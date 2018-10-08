@@ -6,6 +6,23 @@ export const RCBTNCLS = 'call-with-ringccentral-btn'
 export const RCBTNCLS2 = 'call-with-rc-btn'
 export const RCTOOLTIPCLS = 'rc-tooltip'
 
+/**
+ * register event handler which will auto destroy after fisrt run
+ */
+export function once(requestId, callback) {
+  let func = e => {
+    if (
+      e.data &&
+      e.data.requestId &&
+      e.data.requestId === requestId
+    ) {
+      window.removeEventListener('message', func)
+      callback(e.data)
+    }
+  }
+  window.addEventListener('message', func)
+}
+
 export function addRuntimeEventListener(cb) {
   chrome.runtime.onMessage.addListener(cb)
 }

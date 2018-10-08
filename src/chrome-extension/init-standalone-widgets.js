@@ -30,7 +30,7 @@ export default async () => {
     action: 'check-window-opened'
   }) || {}
   let dom = createElementFromHTML(
-    `<div class="rc-init-ext-wrap" id="rc-init-ext-wrap">
+    `<div class="rc-init-ext-wrap animate" id="rc-init-ext-wrap">
       ${createCallBtnHtml('rc-init-ext')}
      </div>
     `

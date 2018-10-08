@@ -72,7 +72,9 @@ async function sendMsgToStandAlone(data) {
 
 async function sendMsgToContent(data) {
   let res = {}
+  console.log(activeTabIds, 'activeTabIds')
   for (let id of activeTabIds) {
+    console.log(id, 'id')
     let response = await sendMsgToTab({id}, data)
     res[id] = response
   }
