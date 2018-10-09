@@ -14,7 +14,7 @@ function popup() {
   if (!standaloneWindow) {
     return initStandaloneWindow()
   }
-  standaloneWindow.update(
+  chrome.windows.update(
     standaloneWindow.id,
     {
       focused: true,

@@ -4,28 +4,19 @@
  * but it is not a required, you can just write your own code, ignore this
  */
 import {RCBTNCLS2, checkPhoneNumber} from './helpers'
+import _ from 'lodash'
+
 export const insertClickToCallButton = [
-  /* // config example
   {
     // must match page url
     urlCheck: href => {
-      return href.includes('?interaction=call')
+      return /\/contacts\/\d+/.test(href)
     },
 
     // define in the page how to get phone number,
     // if can not get phone number, will not insert the call button
-    getContactPhoneNumber: () => {
-      let phoneWrap = document.querySelector('[data-profile-property=\'phone\']')
-      if (!phoneWrap) {
-        return false
-      }
-      let phoneInput = phoneWrap.querySelector('input')
-      if (!phoneInput) {
-        return false
-      }
-      let {value} = phoneInput
-      let isNumber = checkPhoneNumber(value)
-      return isNumber ? value : false
+    getContactPhoneNumber: async () => {
+
     },
 
     // parent dom to insert call button
@@ -34,18 +25,7 @@ export const insertClickToCallButton = [
     parentsToInsertButton: [
       {
         getElem: () => {
-          return document.querySelector('.start-call').parentNode
-        },
-        insertMethod: 'insertBefore',
-        shouldInsert: () => {
-          return !document.querySelector('.' + RCBTNCLS2)
-        }
-      },
-      {
-        getElem: () => {
-          return document
-            .querySelector('.panel-is-call button [data-key="twilio.notEnabled.skipOnboarding"]')
-            .parentNode.parentNode
+          return document.querySelector('.masthead-buttons')
         },
         insertMethod: 'insertBefore',
         shouldInsert: () => {
@@ -54,7 +34,6 @@ export const insertClickToCallButton = [
       }
     ]
   }
-  */
 ]
 
 //hover contact node to show click to dial tooltip
@@ -79,12 +58,12 @@ export const hoverShowClickToCallButton = [
 
 // modify phone number text to click-to-call link
 export const phoneNumberSelectors = [
-  /*
+  ///*
   {
     urlCheck: (href) => {
-      return href.includes('?blade=/details/contact')
+      return /\/contacts\/\d+/.test(href)
     },
-    selector: '#modal-details-body .metadata-span-phone'
+    selector: 'tbody.contact-phones .number div'
   }
-  */
+  //*/
 ]

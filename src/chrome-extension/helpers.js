@@ -6,6 +6,37 @@ export const RCBTNCLS = 'call-with-ringccentral-btn'
 export const RCBTNCLS2 = 'call-with-rc-btn'
 export const RCTOOLTIPCLS = 'rc-tooltip'
 
+export function getIdfromHref(href) {
+  return _.get(
+    href.match(/\/contacts\/(\d+)/),
+    [1]
+  )
+}
+
+export function getXid() {
+  return _.get(
+    document.head.textContent.match(/xpid:"([^"]+)"/),
+    '[1]'
+  )
+}
+
+export function getCSRF() {
+  let dom = document.querySelector('meta[name="csrf-token"]')
+  return dom
+    ? dom.getAttribute('content')
+    : ''
+}
+
+/**
+ * wait ms
+ * @param {number} ms
+ */
+export function wait(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms)
+  })
+}
+
 /**
  * register event handler which will auto destroy after fisrt run
  */
@@ -47,7 +78,7 @@ export function createElementFromHTML(htmlString) {
 }
 
 export function popup() {
-  sendMsgToBackground({
+  return sendMsgToBackground({
     action: 'popup'
   })
 }

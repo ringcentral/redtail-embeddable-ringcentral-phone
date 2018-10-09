@@ -54,7 +54,7 @@ class insertHandler {
   }
 
   //in contact call tab try add call with ringcentral button
-  tryAddCallBtn = () => {
+  tryAddCallBtn = async () => {
     let {href} = location
     let {
       urlCheck,
@@ -70,7 +70,7 @@ class insertHandler {
     if (callWithRingCentralBtn) {
       return
     }
-    let phoneNumber = getContactPhoneNumber()
+    let phoneNumber = await getContactPhoneNumber()
     if (phoneNumber) {
       this.addCallWithRingCentralButton(phoneNumber)
     }
