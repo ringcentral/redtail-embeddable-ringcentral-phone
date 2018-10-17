@@ -5,6 +5,33 @@ import RCLOGOSVG from './rc-logo'
 export const RCBTNCLS = 'call-with-ringccentral-btn'
 export const RCBTNCLS2 = 'call-with-rc-btn'
 export const RCTOOLTIPCLS = 'rc-tooltip'
+export const RCLOADINGCLS = 'rc-loading-wrap'
+
+
+let msgHandler1
+let msgHandler2
+export function notify(msg, type = 'info', timer = 5000) {
+  clearTimeout(msgHandler1)
+  clearTimeout(msgHandler2)
+  let wrap = document.getElementById('rc-msg-wrap')
+  if (wrap) {
+    wrap.remove()
+  }
+  wrap = createElementFromHTML(
+    `
+      <div class="rc-msg-wrap animate rc-msg-type-${type}" id="rc-msg-wrap">
+        ${msg}
+      </div>
+    `
+  )
+  document.body.appendChild(wrap)
+  msgHandler1 = setTimeout(() => {
+    wrap.classList.add('rc-msg-enter')
+  }, 200)
+  msgHandler2 = setTimeout(() => {
+    wrap.classList.remove('rc-msg-enter')
+  }, timer)
+}
 
 export function getIdfromHref(href) {
   return _.get(
@@ -147,3 +174,52 @@ export const createCallBtnHtml = (cls = '') => `
   <img src="${RCLOGOSVG}" class="rc-iblock" />
 </span>
 `
+
+
+
+export function createPhoneList(phoneNumbers, cls = 'rc-call-dds') {
+  if (!phoneNumbers || phoneNumbers.length < 2) {
+    return ''
+  }
+  let dds = phoneNumbers.reduce((prev, obj) => {
+    let {
+      number,
+      title
+    } = obj
+    return prev +
+    `
+    <div class="rc-call-dd">
+      <span>${title}:</span>
+      <b>${number}</b>
+    </div>
+    `
+  }, '')
+  return `
+  <div class="${cls}">
+    ${dds}
+  </div>
+  `
+}
+
+export const createCallBtnHtml = (cls = '', phoneNumbers) => {
+  let cls2 = phoneNumbers && phoneNumbers.length > 1
+    ? 'rc-has-dd'
+    : ''
+  return `
+    <span class="${RCBTNCLS} rc-mg1r ${cls} ${cls2}">
+      <span class="rc-iblock rc-mg1r">Call with</span>
+      <img src="${RCLOGOSVG}" class="rc-iblock" />
+      ${createPhoneList(phoneNumbers)}
+    </span>
+  `
+}
+
+export function onClickPhoneNumber(e) {
+  let {target} = e
+  let p = findParentBySel(target, '.rc-call-dd')
+  if (!p) {
+    return
+  }
+  let n = p.querySelector('b').textContent.trim()
+  callWithRingCentral(n)
+}
