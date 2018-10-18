@@ -33,6 +33,7 @@
     "concat-loader": "0.1.0",
     "cross-env": "5.1.6",
     "css-loader": "0.28.11",
+    "dayjs": "1.7.7",
     "eslint": "4.19.1",
     "eslint-config-airbnb": "16.1.0",
     "eslint-config-standard": "11.0.0",
