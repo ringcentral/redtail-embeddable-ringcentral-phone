@@ -7,6 +7,10 @@ export const RCBTNCLS2 = 'call-with-rc-btn'
 export const RCTOOLTIPCLS = 'rc-tooltip'
 export const RCLOADINGCLS = 'rc-loading-wrap'
 
+export function getHost() {
+  let {host, protocol} = location
+  return `${protocol}//${host}`
+}
 
 let msgHandler1
 let msgHandler2
