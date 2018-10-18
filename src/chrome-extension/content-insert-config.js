@@ -3,7 +3,11 @@
  * with proper config, insert `call with ringcentral` button or hover some elemet show call button tooltip can be easily done
  * but it is not a required, you can just write your own code, ignore this
  */
-import {RCBTNCLS2, checkPhoneNumber} from './helpers'
+import {
+  RCBTNCLS2,
+  checkPhoneNumber,
+  createElementFromHTML
+} from './helpers'
 import _ from 'lodash'
 
 export const insertClickToCallButton = [
@@ -15,8 +19,26 @@ export const insertClickToCallButton = [
 
     // define in the page how to get phone number,
     // if can not get phone number, will not insert the call button
-    getContactPhoneNumber: async () => {
-
+    getContactPhoneNumbers: async () => {
+      let sel = '.contact-phones .number'
+      let doms = Array.from(
+        document.querySelectorAll(sel)
+      )
+      return doms.reduce((prev, dom, i) => {
+        let txt = dom.textContent.trim().replace(':', '')
+        if (!checkPhoneNumber(txt)) {
+          return prev
+        }
+        let title = dom.previousElementSibling.textContent.trim()
+        return [
+          ...prev,
+          {
+            id: i + 'pn',
+            title,
+            number: txt
+          }
+        ]
+      }, [])
     },
 
     // parent dom to insert call button
@@ -25,7 +47,17 @@ export const insertClickToCallButton = [
     parentsToInsertButton: [
       {
         getElem: () => {
-          return document.querySelector('.masthead-buttons')
+          let dom = document.querySelector('#contact-masthead2 #rc-btn-wrap')
+          if (!dom) {
+            let wrap = createElementFromHTML(`
+              <div id="rc-btn-wrap"></div>
+            `)
+            let parent = document.querySelector('#contact-masthead2')
+            parent.classList.add('rc-wrapped')
+            parent.insertBefore(wrap, document.querySelector('#contact-masthead2 > .col-sm-12'))
+            return wrap
+          }
+          return dom
         },
         insertMethod: 'insertBefore',
         shouldInsert: () => {

@@ -168,15 +168,6 @@ export function findParentBySel(node, sel) {
   return res
 }
 
-export const createCallBtnHtml = (cls = '') => `
-<span class="${RCBTNCLS} rc-mg1r ${cls}">
-  <span class="rc-iblock rc-mg1r">Call with</span>
-  <img src="${RCLOGOSVG}" class="rc-iblock" />
-</span>
-`
-
-
-
 export function createPhoneList(phoneNumbers, cls = 'rc-call-dds') {
   if (!phoneNumbers || phoneNumbers.length < 2) {
     return ''

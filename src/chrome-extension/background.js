@@ -10,6 +10,14 @@ function getDisplayInfo() {
   })
 }
 
+function getWindowById(id) {
+  return new Promise(resolve => {
+    chrome.windows.get(id, (win) => {
+      resolve(win)
+    })
+  })
+}
+
 function popup() {
   if (!standaloneWindow) {
     return initStandaloneWindow()
@@ -181,4 +189,14 @@ chrome.windows.onRemoved.addListener(function (id) {
     widgetsOpened: false
   })
 })
+
+chrome.windows.onFocusChanged.addListener(function (id) {
+  if (standaloneWindow && standaloneWindow.id !== id) {
+    sendMsgToContent({
+      action: 'widgets-window-state-notify',
+      widgetsOpened: false
+    })
+  }
+})
+
 
