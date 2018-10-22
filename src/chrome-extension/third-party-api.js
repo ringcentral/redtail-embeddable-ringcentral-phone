@@ -53,7 +53,6 @@ let rc = {
   }
 }
 let authEventInited = false
-let rcLogined = false
 let cacheKey = 'contacts'
 let isFetchingContacts = false
 const phoneFormat = 'National'
@@ -237,31 +236,6 @@ function showActivityDetail(body) {
   notify(msg, 'info', 8000)
 }
 
-function formatEngagements(arr, contact) {
-  return arr.map(item => {
-    return {
-      id: item.ACTIVITY_ID,
-      url: item.TypeDetailsUrl,
-      subject: item.NAME,
-      time: + new Date(item.CALENDAR_START_DATE_UTC),
-      body: item.DETAILS,
-      contact
-    }
-  })
-    .sort((a, b) => {
-      return b.time - a.time
-    })
-  /*
-    [
-      {
-        id: '123',
-        subject: 'Title',
-        time: 1528854702472
-      }
-    ]
-  */
-}
-
 async function getActivities(body) {
   //https://crm.na1.insightly.com/Metadata/GetDetailActivityGridData?gridType=Past&readDb=False
   //{"type":"Contact","viewId":"271723768","page":1}
@@ -421,15 +395,6 @@ async function showContactInfoPanel(call) {
 
   document.body.appendChild(elem)
   popup()
-}
-
-/**
- * get api key from user setting page
- */
-async function getApiKey() {
-  hideAuthPanel()
-  updateToken('authed')
-  notifyRCAuthed()
 }
 
 /**
@@ -645,26 +610,6 @@ function doAuth() {
   hideAuthBtn()
 }
 
-function hideAuthPanel() {
-  let frameWrap = document.getElementById('rc-auth-hs')
-  frameWrap && frameWrap.classList.add('rc-hide-to-side')
-}
-
-function renderAuthPanel() {
-  let pop = createElementFromHTML(
-    `
-    <div id="rc-auth-hs" class="animate rc-auth-wrap rc-hide-to-side" draggable="false">
-      Authing...
-    </div>
-    `
-  )
-  if (
-    !document.getElementById('rc-auth-hs')
-  ) {
-    document.body.appendChild(pop)
-  }
-}
-
 function handleAuthClick(e) {
   let {target} = e
   let {classList}= target
@@ -719,7 +664,6 @@ async function handleRCEvents(e) {
   }
   if (type ===  'rc-login-status-notify') {
     console.log('rc logined', loggedIn)
-    rcLogined = loggedIn
   }
   if (
     type === 'rc-route-changed-notify' &&
@@ -868,6 +812,5 @@ export default async function initThirdPartyApi () {
 
   //get the html ready
   renderAuthButton()
-  renderAuthPanel()
 
 }
