@@ -570,7 +570,7 @@ async function getContactsDetails(html) {
  * get contact lists
  */
 const getContacts = _.debounce(async function () {
-  if (!rcLogined || isFetchingContacts) {
+  if (isFetchingContacts) {
     return []
   }
   if (!local.apiKey) {
