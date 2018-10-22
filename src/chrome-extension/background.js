@@ -63,6 +63,7 @@ async function initStandaloneWindow() {
 }
 
 function getStandaloneWindowTab() {
+  console.log('standwind', standaloneWindow)
   return _.get(standaloneWindow, 'tabs[0]')
 }
 
@@ -75,10 +76,13 @@ function sendMsgToTab(tab, data) {
 }
 
 async function sendMsgToStandAlone(data) {
+  console.log('dt to st', data)
   let tab = getStandaloneWindowTab()
   if (!tab) {
+    console.log('did not find standalone tag')
     return
   }
+  console.log('data to sl', data)
   return sendMsgToTab(tab, data)
 }
 
@@ -107,6 +111,7 @@ function getTabFromId(id) {
 }
 
 async function onTabEvent(_tab, action, changeInfo) {
+  console.log(_tab, '_tab')
   let tab = _.isPlainObject(_tab)
     ? _tab
     : await getTabFromId(_tab)

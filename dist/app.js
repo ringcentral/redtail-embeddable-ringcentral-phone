@@ -81,12 +81,12 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 113);
+/******/ 	return __webpack_require__(__webpack_require__.s = 252);
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ 1:
+/***/ 2:
 /***/ (function(module, exports) {
 
 /**
@@ -119,13 +119,13 @@ module.exports = isArray;
 
 /***/ }),
 
-/***/ 113:
+/***/ 252:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var _isArray2 = __webpack_require__(1);
+var _isArray2 = __webpack_require__(2);
 
 var _isArray3 = _interopRequireDefault(_isArray2);
 
@@ -165,6 +165,11 @@ function init() {
       console.log(request.data);
       sendMsg(request.data);
       sendResponse();
+    }
+  });
+  onMsg({
+    data: {
+      type: 'rc-standalone-init'
     }
   });
 }

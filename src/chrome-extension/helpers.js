@@ -1,15 +1,56 @@
 import {parseNumber} from 'libphonenumber-js'
 import _ from 'lodash'
 import RCLOGOSVG from './rc-logo'
+import $ from 'jquery'
+import fetch from '../common/fetch'
 
 export const RCBTNCLS = 'call-with-ringccentral-btn'
 export const RCBTNCLS2 = 'call-with-rc-btn'
 export const RCTOOLTIPCLS = 'rc-tooltip'
 export const RCLOADINGCLS = 'rc-loading-wrap'
+export const host = getHost()
 
-export function getHost() {
+function getHost() {
   let {host, protocol} = location
   return `${protocol}//${host}`
+}
+
+function formatNumbers(res) {
+  let re = $(res)
+  let final = []
+  re.find('.contact-phones .number').each(function(i) {
+    let t = $(this)
+    let number = t.text().trim()
+    if (checkPhoneNumber(number)) {
+      final.push({
+        id: i,
+        title: t.prev().text().trim(),
+        number: t.text().trim()
+      })
+    }
+  })
+  return final
+}
+
+export async function getContactInfo(ids) {
+  if (!ids) {
+    return []
+  }
+  let {
+    vid
+  } = ids
+  //https://smf.crm3.redtailtechnology.com/contacts/10
+  let url = `${host}/contacts/${vid}`
+  return fetch.get(url, {
+    headers: {
+      Accept: 'text/html'
+    }
+  })
+}
+
+export async function getNumbers(ids) {
+  let res = await getContactInfo(ids)
+  return res ? formatNumbers(res) : []
 }
 
 let msgHandler1

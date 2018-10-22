@@ -46,6 +46,9 @@ export default async () => {
     function(request, sender, sendResponse) {
       if (request.action === 'widgets-window-state-notify') {
         toggleInitButton(btn, request.widgetsOpened)
+      } else {
+        console.log('get msg now', request)
+        window.postMessage(request, '*')
       }
       sendResponse()
     }

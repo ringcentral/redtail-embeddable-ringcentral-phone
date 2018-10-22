@@ -8,22 +8,26 @@
  * example script: https://github.com/zxdong262/hubspot-embeddable-ringcentral-phone/blob/master/src/chrome-extension/third-party-api.js
  */
 
-import dayjs from 'dayjs'
+import moment from 'moment'
 import {formatNumber} from 'libphonenumber-js'
 import {thirdPartyConfigs} from './app-config'
 import {createForm} from './call-log-sync-form'
 import * as ls from './ls'
+import $ from 'jquery'
 import {
   createElementFromHTML,
   findParentBySel,
   popup,
   APIKEYLS,
+  checkPhoneNumber,
   callWithRingCentral,
   notify,
-  getHost,
-  fetchApiKey
+  host,
+  getIdfromHref,
+  sendMsgToBackground,
+  getContactInfo
 } from './helpers'
-import fetch, {jsonHeader, handleErr} from '../common/fetch'
+import fetch, {jsonHeader} from '../common/fetch'
 import _ from 'lodash'
 import {setCache, getCache} from './cache'
 import logo from './rc-logo'
@@ -31,7 +35,6 @@ import extLinkSvg from './link-external.svg'
 
 let formatDate = 'DD-MMM-YYYY hh:mm A'
 let {
-  apiServer,
   showCallLogSyncForm
 } = thirdPartyConfigs
 
@@ -41,10 +44,18 @@ let lsKeys = {
 let local = {
   apiKey: null
 }
-
+let rc = {
+  postMessage: data => {
+    sendMsgToBackground({
+      to: 'standalone',
+      data
+    })
+  }
+}
 let authEventInited = false
 let rcLogined = false
 let cacheKey = 'contacts'
+let isFetchingContacts = false
 const phoneFormat = 'National'
 
 const serviceName = 'RedtailCRM'
@@ -79,7 +90,7 @@ function notifySyncSuccess({
   id
 }) {
   let type = 'success'
-  let url = `${getHost()}/details/Event/${id}`
+  let url = `${host}/details/Event/${id}`
   let msg = `
     <div>
       <div class="rc-pd1b">
@@ -121,7 +132,7 @@ async function syncCallLogToInsightly(body) {
 
 async function getVerifyToken(id) {
   //https://crm.na1.insightly.com/Metadata/CreateFor/?EntityType=Event&RelatedEntityType=Contact&RelatedEntityId=273196913&InModal=1&createRedirectType=ActivityReload
-  let url = `${getHost()}/Metadata/CreateFor/?EntityType=Event&RelatedEntityType=Contact&RelatedEntityId=${id}&InModal=1&createRedirectType=ActivityReload`
+  let url = `${host}/Metadata/CreateFor/?EntityType=Event&RelatedEntityType=Contact&RelatedEntityId=${id}&InModal=1&createRedirectType=ActivityReload`
   let res = await fetch.get(url, {
     headers: {
       Accept: 'text/html'
@@ -149,8 +160,8 @@ async function doSync(body, formData) {
     Call from ${fromNumber} to ${toNumber}, duration: ${duration} seconds.
     ${formData.description || ''}
   `
-  let start = dayjs(body.call.startTime).format(formatDate)
-  let end = dayjs(body.call.startTime + duration * 1000).format(formatDate)
+  let start = moment(body.call.startTime).format(formatDate)
+  let end = moment(body.call.startTime + duration * 1000).format(formatDate)
   let token = await getVerifyToken(contactId)
   let data = {
     EntityType: 'Event',
@@ -188,7 +199,7 @@ __RequestVerificationToken: h480cvYO_JTDnFF4KR2fczcDH1x2QdqhpjFRXOs12Abv265WhHNh
 RedirectType: ActivityReload
   */
   //https://crm.na1.insightly.com/Metadata/Create
-  let url = `${getHost()}/Metadata/Create`
+  let url = `${host}/Metadata/Create`
   let res = await fetch.post(url, {}, {
     headers: {
       ...jsonHeader,
@@ -258,20 +269,30 @@ async function getActivities(body) {
   if (!id) {
     return []
   }
-  let url = `${getHost()}/Metadata/GetDetailActivityGridData?gridType=Past&readDb=False`
-  let data = {
-    type: 'Contact',
-    viewId: id,
-    page: 1
-  }
-  let res = await fetch.post(url, data)
-  if (res && res.Items) {
-    return formatEngagements(JSON.parse(res.Items), body.contact)
-  } else {
-    console.log('fetch events error')
-    console.log(res)
-  }
-  return []
+  let html = await getContactInfo({
+    vid: id
+  })
+  let re = $(html)
+  let res = []
+  let list = re.find('#contact-timeline2-content tr')
+  list.each(function() {
+    let t = $(this)
+    let id = t.prop('data-id')
+    let time = t.children()
+      .eq(1).text().trim()
+      .replace(/ +/, ' ')
+    time = moment(time, 'MMM DD h:mm A').valueOf()
+    let titleNode = t.children().eq(2).find('a')
+    let subject = titleNode.text()
+    let url = titleNode.prop('href')
+    res.push({
+      id,
+      time,
+      subject,
+      url
+    })
+  })
+  return res
 }
 
 async function updateToken(newToken, type = 'apiKey') {
@@ -320,7 +341,6 @@ function onClickContactPanel (e) {
     )
   }
 }
-
 
 function hideContactInfoPanel() {
   let dom = document
@@ -407,51 +427,9 @@ async function showContactInfoPanel(call) {
  * get api key from user setting page
  */
 async function getApiKey() {
-  let apiKey = await fetchApiKey()
   hideAuthPanel()
-  if (!apiKey) {
-    console.log('can not found apikey in user setting page')
-    return unAuth()
-  }
-  apiKey = btoa(apiKey.trim())
-  updateToken(apiKey)
+  updateToken('authed')
   notifyRCAuthed()
-}
-
-/**
- * build name from contact info
- * @param {object} contact
- * @return {string}
- */
-function buildName(contact) {
-  let firstname = _.get(
-    contact,
-    'FIRST_NAME'
-  ) || 'noname'
-  let lastname = _.get(
-    contact,
-    'LAST_NAME'
-  ) || 'noname'
-  return firstname + ' ' + lastname
-}
-
-/**
- * build phone numbers from contact info
- * @param {object} contact
- * @return {array}
- */
-function buildPhone(contact) {
-  return Object.keys(contact)
-    .filter(k => k.startsWith('PHONE'))
-    .reduce((p, k) => {
-      if (contact[k]) {
-        p.push({
-          phoneNumber: contact[k],
-          phoneType: 'directPhone'
-        })
-      }
-      return p
-    }, [])
 }
 
 /**
@@ -523,30 +501,76 @@ function searchContacts(contacts, keyword) {
   })
 }
 
-/**
- * convert third party contacts to ringcentral contacts
- * @param {array} contacts
- * @return {array}
- */
-function formatContacts(contacts) {
-  return contacts.map(contact => {
-    return {
-      id: contact.CONTACT_ID,
-      name: buildName(contact),
-      type: serviceName,
-      emails: contact.EMAIL_ADDRESS
-        ? [contact.EMAIL_ADDRESS]
-        : [],
-      phoneNumbers: buildPhone(contact)
+async function getContactDetail(id) {
+  let html = await getContactInfo({
+    vid: id
+  })
+  let re = $(html)
+  let trs = re.find('.contact-phones tr, .contact-emails tr')
+  let res = {
+    type: serviceName,
+    phoneNumbers: [],
+    emails: []
+  }
+  trs.each(function() {
+    let t = $(this)
+    let id = t.prop('id')
+    let isPhone = id.includes('phone')
+    let isEmail = id.includes('email')
+    if (isPhone) {
+      let n = t.find('.number')
+      let txt = n.text().trim()
+      if (checkPhoneNumber(txt)) {
+        res.phoneNumbers.push({
+          phoneNumber: txt,
+          phoneType: 'directPhone'
+        })
+      }
+    } else if (isEmail) {
+      let n = t.find('.email-address')
+      let txt = n.text().trim()
+      if (txt) {
+        res.emails.push(txt)
+      }
     }
   })
+  return res
+}
+
+/**
+ * getContactsDetails
+ */
+async function getContactsDetails(html) {
+  let re = $(html)
+  let list = []
+  re.find('#contact-list tr').each(function() {
+    let t = $(this)
+    let nameWrap = t.find('.Name a')
+    let name = nameWrap.text().trim()
+    let href = nameWrap.prop('href')
+    let id = getIdfromHref(href)
+    list.push({
+      name,
+      id
+    })
+  })
+  let final = []
+  for (let item of list) {
+    let {id} = item
+    let info = await getContactDetail(id)
+    final.push({
+      ...item,
+      ...info
+    })
+  }
+  return final
 }
 
 /**
  * get contact lists
  */
-async function getContacts() {
-  if (!rcLogined) {
+const getContacts = _.debounce(async function () {
+  if (!rcLogined || isFetchingContacts) {
     return []
   }
   if (!local.apiKey) {
@@ -559,44 +583,42 @@ async function getContacts() {
     return cached
   }
   //https://api.insightly.com/v3.0/Help#!/Contacts/GetEntities
-  let url =`${apiServer}/Contacts?brief=true&count_total=true`
+  let url =`${host}/contacts`
+  notify(
+    'Fetching contacts list, may take a while',
+    'info',
+    1000 * 60 * 60
+  )
+  isFetchingContacts = true
   let res = await fetch.get(url, {
     headers: {
-      Authorization: `Basic ${local.apiKey}`,
-      ...jsonHeader
-    },
-    handleErr: (res) => {
-      let {status} = res
-      if (status === 401) {
-        return {
-          error: 'unauthed'
-        }
-      } else if (status > 304) {
-        handleErr(res)
-      }
+      Accept: 'text/html'
     }
   })
-  if (res && res.error === 'unauthed') {
-    await updateToken(null)
-  }
   if (!res) {
+    isFetchingContacts = false
     console.log('fetch contacts error')
-    console.log(res)
+    notify(
+      'Fetching contacts list error',
+      'warn'
+    )
     return []
   }
-  let final = formatContacts(res)
+  let final = await getContactsDetails(res)
+  isFetchingContacts = false
   setCache(cacheKey, final)
+  notify(
+    'Fetching contacts list done',
+    'success'
+  )
   return final
-}
+}, 500)
 
 function notifyRCAuthed(authorized = true) {
-  document
-    .querySelector('#rc-widget-adapter-frame')
-    .contentWindow
-    .postMessage({
-      type: 'rc-adapter-update-authorization-status',
-      authorized
-    }, '*')
+  rc.postMessage({
+    type: 'rc-adapter-update-authorization-status',
+    authorized
+  }, '*')
 }
 
 async function unAuth() {
@@ -615,13 +637,12 @@ function showAuthBtn() {
 }
 
 function doAuth() {
-  if (local.apiToken) {
+  if (local.apiKey) {
     return
   }
-  getApiKey()
+  updateToken('true')
+  notifyRCAuthed()
   hideAuthBtn()
-  let frameWrap = document.getElementById('rc-auth-hs')
-  frameWrap && frameWrap.classList.remove('rc-hide-to-side')
 }
 
 function hideAuthPanel() {
@@ -686,13 +707,16 @@ function renderAuthButton() {
  */
 async function handleRCEvents(e) {
   let {data} = e
-  // console.log('======data======')
-  // console.log(data, data.type, data.path)
-  // console.log('======data======')
+  console.log('======data======')
+  console.log(data, data.type, data.path)
+  console.log('======data======')
   if (!data) {
     return
   }
   let {type, loggedIn, path, call} = data
+  if (type === 'rc-adapter-pushAdapterState') {
+    return initRCEvent()
+  }
   if (type ===  'rc-login-status-notify') {
     console.log('rc logined', loggedIn)
     rcLogined = loggedIn
@@ -714,7 +738,6 @@ async function handleRCEvents(e) {
   if (type !== 'rc-post-message-request') {
     return
   }
-  let rc = document.querySelector('#rc-widget-adapter-frame').contentWindow
 
   if (data.path === '/authorize') {
     if (local.apiKey) {
@@ -804,35 +827,37 @@ async function handleRCEvents(e) {
   }
 }
 
+function initRCEvent() {
+  //register service to rc-widgets
+  let data = {
+    type: 'rc-adapter-register-third-party-service',
+    service: {
+      name: serviceName,
+      contactsPath: '/contacts',
+      contactSearchPath: '/contacts/search',
+      contactMatchPath: '/contacts/match',
+      authorizationPath: '/authorize',
+      authorizedTitle: 'Unauthorize',
+      unauthorizedTitle: 'Authorize',
+      callLoggerPath: '/callLogger',
+      callLoggerTitle: `Log to ${serviceName}`,
+      activitiesPath: '/activities',
+      activityPath: '/activity',
+      authorized: false
+    }
+  }
+  rc.postMessage(data)
+  if (local.apiKey) {
+    notifyRCAuthed()
+  }
+}
+
 export default async function initThirdPartyApi () {
   if (authEventInited) {
     return
   }
   authEventInited = true
 
-  let rcFrame = document.querySelector('#rc-widget-adapter-frame')
-  if (!rcFrame || !rcFrame.contentWindow) {
-    return
-  }
-  //register service to rc-widgets
-  rcFrame
-    .contentWindow.postMessage({
-      type: 'rc-adapter-register-third-party-service',
-      service: {
-        name: serviceName,
-        contactsPath: '/contacts',
-        contactSearchPath: '/contacts/search',
-        contactMatchPath: '/contacts/match',
-        authorizationPath: '/authorize',
-        authorizedTitle: 'Unauthorize',
-        unauthorizedTitle: 'Authorize',
-        callLoggerPath: '/callLogger',
-        callLoggerTitle: `Log to ${serviceName}`,
-        activitiesPath: '/activities',
-        activityPath: '/activity',
-        authorized: false
-      }
-    }, '*')
   window.addEventListener('message', handleRCEvents)
 
   //hanlde contacts events
@@ -844,9 +869,5 @@ export default async function initThirdPartyApi () {
   //get the html ready
   renderAuthButton()
   renderAuthPanel()
-
-  if (local.apiKey) {
-    notifyRCAuthed()
-  }
 
 }

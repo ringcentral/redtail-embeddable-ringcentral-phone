@@ -43,6 +43,11 @@ function init() {
       }
     }
   )
+  onMsg({
+    data: {
+      type: 'rc-standalone-init'
+    }
+  })
 }
 
 window.addEventListener('load', init)
