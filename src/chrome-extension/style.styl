@@ -16,7 +16,7 @@ body .Adapter_root.Adapter_right
 .call-with-ringccentral-btn
   display inline-block
   vertical-align middle
-  font-size .75rem
+  font-size 1rem
   padding .5625rem 1rem
   color #333
   border-radius .1875rem
@@ -55,8 +55,10 @@ body .Adapter_root.Adapter_right
 .animate
   transition all 0.5s
 
+.rc-sync-contact-button-wrap
 .rc-auth-button-wrap
   text-align right
+.rc-sync-contact-button-wrap
 .rc-auth-wrap
 .rc-auth-button-wrap
   width 500px
@@ -285,8 +287,20 @@ body .Adapter_root.Adapter_right
 .rc-msg-type-warn
   color #ffc107
 .rc-btn-wrapper
-  margin-bottom 35px
+  margin-bottom 45px
   padding-left 15px
   margin-top -25px
 .rc-wrapped #contact-masthead-shim
   margin-top 145px !important
+
+.rc-sync-contact-button-wrap
+  width 160px
+  .pointer
+    cursor pointer
+    text-decoration underline
+    &:hover
+      color #333
+  .rc-do-sync-contact
+    color green
+  .rc-no-sync-contact
+    color red

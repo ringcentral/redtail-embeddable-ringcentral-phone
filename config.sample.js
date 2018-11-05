@@ -35,6 +35,11 @@ module.exports = {
   /*
   thirdPartyConfigs: {
 
+    //service name
+    serviceName: 'RedtailCRM',
+
+    //show call log sync form or not
+    showCallLogSyncForm: true
   },
   */
 

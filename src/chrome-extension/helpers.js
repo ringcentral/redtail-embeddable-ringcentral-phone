@@ -3,16 +3,24 @@ import _ from 'lodash'
 import RCLOGOSVG from './rc-logo'
 import $ from 'jquery'
 import fetch from '../common/fetch'
+import {formatNumber} from 'libphonenumber-js'
 
 export const RCBTNCLS = 'call-with-ringccentral-btn'
 export const RCBTNCLS2 = 'call-with-rc-btn'
 export const RCTOOLTIPCLS = 'rc-tooltip'
 export const RCLOADINGCLS = 'rc-loading-wrap'
+export const serviceName = ''
 export const host = getHost()
+
+const phoneFormat = 'National'
 
 function getHost() {
   let {host, protocol} = location
   return `${protocol}//${host}`
+}
+
+export function formatPhone(phone) {
+  return formatNumber(phone, phoneFormat)
 }
 
 function formatNumbers(res) {

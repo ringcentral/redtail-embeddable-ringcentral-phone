@@ -27,15 +27,21 @@ import {
   sendMsgToBackground,
   getContactInfo
 } from './helpers'
+import {
+  getUserId
+} from './content-insert-config'
 import fetch, {jsonHeader} from '../common/fetch'
 import _ from 'lodash'
 import {setCache, getCache} from './cache'
 import logo from './rc-logo'
 import extLinkSvg from './link-external.svg'
+import {findMatchContacts, searchContacts} from './contacts'
+import {showActivityDetail, getActivities} from './activities'
 
 let formatDate = 'DD-MMM-YYYY hh:mm A'
 let {
-  showCallLogSyncForm
+  showCallLogSyncForm,
+  serviceName
 } = thirdPartyConfigs
 
 let lsKeys = {
@@ -56,8 +62,6 @@ let authEventInited = false
 let cacheKey = 'contacts'
 let isFetchingContacts = false
 const phoneFormat = 'National'
-
-const serviceName = 'RedtailCRM'
 
 function buildFormData(data) {
   return Object.keys(data)
@@ -108,7 +112,7 @@ function notifySyncSuccess({
   notify(msg, type, 9000)
 }
 
-async function syncCallLogToInsightly(body) {
+async function syncCallLogToRedtail(body) {
   let isManuallySync = !body.triggerType
   let isAutoSync = body.triggerType === 'callLogSync'
   if (!isAutoSync && !isManuallySync) {
@@ -126,25 +130,6 @@ async function syncCallLogToInsightly(body) {
   } else {
     doSync(body, {})
   }
-
-}
-
-async function getVerifyToken(id) {
-  //https://crm.na1.insightly.com/Metadata/CreateFor/?EntityType=Event&RelatedEntityType=Contact&RelatedEntityId=273196913&InModal=1&createRedirectType=ActivityReload
-  let url = `${host}/Metadata/CreateFor/?EntityType=Event&RelatedEntityType=Contact&RelatedEntityId=${id}&InModal=1&createRedirectType=ActivityReload`
-  let res = await fetch.get(url, {
-    headers: {
-      Accept: 'text/html'
-    }
-  })
-  if (!res) {
-    return ''
-  }
-  let arr = res.match(/name="__RequestVerificationToken" type="hidden" value="([^"]+)"/)
-  if (!arr) {
-    return ''
-  }
-  return arr[1] || ''
 }
 
 async function doSync(body, formData) {
@@ -213,60 +198,6 @@ RedirectType: ActivityReload
     console.log('post /Metadata/Create error')
     console.log(res)
   }
-}
-
-function showActivityDetail(body) {
-  let {activity = {}} = body
-  let {
-    subject,
-    url
-  } = activity
-  let msg = `
-    <div>
-      <div class="rc-pd1b">
-        <a href="${url}">
-          <b>
-            subject: ${subject}
-            <img width=16 height=16 src="${extLinkSvg}" />
-          </b>
-        </a>
-      </div>
-    </div>
-  `
-  notify(msg, 'info', 8000)
-}
-
-async function getActivities(body) {
-  //https://crm.na1.insightly.com/Metadata/GetDetailActivityGridData?gridType=Past&readDb=False
-  //{"type":"Contact","viewId":"271723768","page":1}
-  let id = _.get(body, 'contact.id')
-  if (!id) {
-    return []
-  }
-  let html = await getContactInfo({
-    vid: id
-  })
-  let re = $(html)
-  let res = []
-  let list = re.find('#contact-timeline2-content tr')
-  list.each(function() {
-    let t = $(this)
-    let id = t.prop('data-id')
-    let time = t.children()
-      .eq(1).text().trim()
-      .replace(/ +/, ' ')
-    time = moment(time, 'MMM DD h:mm A').valueOf()
-    let titleNode = t.children().eq(2).find('a')
-    let subject = titleNode.text()
-    let url = titleNode.prop('href')
-    res.push({
-      id,
-      time,
-      subject,
-      url
-    })
-  })
-  return res
 }
 
 async function updateToken(newToken, type = 'apiKey') {
@@ -397,75 +328,6 @@ async function showContactInfoPanel(call) {
   popup()
 }
 
-/**
- * search contacts by number match
- * @param {array} contacts
- * @param {string} keyword
- */
-function findMatchContacts(contacts, numbers) {
-  let {formatedNumbers, formatNumbersMap} = numbers.reduce((prev, n) => {
-    let nn = formatPhone(n)
-    prev.formatedNumbers.push(nn)
-    prev.formatNumbersMap[nn] = n
-    return prev
-  }, {
-    formatedNumbers: [],
-    formatNumbersMap: {}
-  })
-  let res = contacts.filter(contact => {
-    let {
-      phoneNumbers
-    } = contact
-    return _.find(phoneNumbers, n => {
-      return formatedNumbers
-        .includes(
-          formatPhone(n.phoneNumber)
-        )
-    })
-  })
-  return res.reduce((prev, it) => {
-    let phone = _.find(it.phoneNumbers, n => {
-      return formatedNumbers.includes(
-        formatPhone(n.phoneNumber)
-      )
-    })
-    let num = phone.phoneNumber
-    let key = formatNumbersMap[
-      formatPhone(num)
-    ]
-    if (!prev[key]) {
-      prev[key] = []
-    }
-    let res = {
-      id: it.id, // id to identify third party contact
-      type: serviceName, // need to same as service name
-      name: it.name,
-      phoneNumbers: it.phoneNumbers
-    }
-    prev[key].push(res)
-    return prev
-  }, {})
-}
-
-
-/**
- * search contacts by keyword
- * @param {array} contacts
- * @param {string} keyword
- */
-function searchContacts(contacts, keyword) {
-  return contacts.filter(contact => {
-    let {
-      name,
-      phoneNumbers
-    } = contact
-    return name.includes(keyword) ||
-      _.find(phoneNumbers, n => {
-        return n.phoneNumber.includes(keyword)
-      })
-  })
-}
-
 async function getContactDetail(id) {
   let html = await getContactInfo({
     vid: id
@@ -531,10 +393,22 @@ async function getContactsDetails(html) {
   return final
 }
 
+function showSyncTip() {
+  document
+    .querySelector('.rc-sync-contact-button-wrap')
+    .classList.remove('rc-hide-to-side')
+}
+
+function hideSyncTip() {
+  document
+    .querySelector('.rc-sync-contact-button-wrap')
+    .classList.add('rc-hide-to-side')
+}
+
 /**
  * get contact lists
  */
-const getContacts = _.debounce(async function () {
+const getContacts = _.debounce(async function (forceUpdate) {
   if (isFetchingContacts) {
     return []
   }
@@ -542,9 +416,12 @@ const getContacts = _.debounce(async function () {
     showAuthBtn()
     return []
   }
-  let cached = getCache(cacheKey)
+  let cached = forceUpdate
+    ? false
+    : getCache(cacheKey)
   if (cached) {
     console.log('use cache')
+    showSyncTip()
     return cached
   }
   //https://api.insightly.com/v3.0/Help#!/Contacts/GetEntities
@@ -571,11 +448,12 @@ const getContacts = _.debounce(async function () {
   }
   let final = await getContactsDetails(res)
   isFetchingContacts = false
-  setCache(cacheKey, final)
+  setCache(cacheKey, final, 'never')
   notify(
     'Fetching contacts list done',
     'success'
   )
+  popup()
   return final
 }, 500)
 
@@ -620,6 +498,16 @@ function handleAuthClick(e) {
   }
 }
 
+function onClickSyncPanel(e) {
+  let {target} = e
+  let {classList}= target
+  if (target.classList.contains('rc-do-sync-contact')) {
+    getContacts(true)
+  } else if (classList.contains('rc-no-sync-contact')) {
+    hideSyncTip()
+  }
+}
+
 function renderAuthButton() {
   let btn = createElementFromHTML(
     `
@@ -641,6 +529,32 @@ function renderAuthButton() {
   btn.onclick = handleAuthClick
   if (
     !document.querySelector('.rc-auth-button-wrap')
+  ) {
+    document.body.appendChild(btn)
+  }
+}
+
+/**
+ * get contacts may take a while,
+ * user can decide sync or not
+ */
+function renderConfirmGetContactsButton() {
+  let btn = createElementFromHTML(
+    `
+      <div
+        class="rc-sync-contact-button-wrap animate rc-hide-to-side"
+        title="After sync, you can access lastest ${serviceName} contacts from RingCentral phone's contacts list. But if you do not want to update ${serviceName} contact list in RingCentral phone, you can skip this by click close button"
+      >
+        <span class="rc-iblock">Sync contacts?</span>
+        </span>
+        <span class="rc-do-sync-contact rc-iblock pointer">Yes</span>
+        <span class="rc-no-sync-contact rc-iblock pointer">No</span>
+      </div>
+    `
+  )
+  btn.onclick = onClickSyncPanel
+  if (
+    !document.querySelector('.rc-sync-contact-button-wrap')
   ) {
     document.body.appendChild(btn)
   }
@@ -734,7 +648,7 @@ async function handleRCEvents(e) {
   }
   else if (path === '/callLogger') {
     // add your codes here to log call to your service
-    syncCallLogToInsightly(data.body)
+    syncCallLogToRedtail(data.body)
     // response to widget
     rc.postMessage({
       type: 'rc-post-message-response',
@@ -744,16 +658,6 @@ async function handleRCEvents(e) {
   }
   else if (path === '/activities') {
     const activities = await getActivities(data.body)
-    /*
-    [
-      {
-        id: '123',
-        subject: 'Title',
-        time: 1528854702472
-      }
-    ]
-    */
-    // response to widget
     rc.postMessage({
       type: 'rc-post-message-response',
       responseId: data.requestId,
@@ -801,7 +705,8 @@ export default async function initThirdPartyApi () {
     return
   }
   authEventInited = true
-
+  cacheKey = cacheKey + getUserId()
+  console.log(cacheKey, 'cacheKey')
   window.addEventListener('message', handleRCEvents)
 
   //hanlde contacts events
@@ -812,5 +717,6 @@ export default async function initThirdPartyApi () {
 
   //get the html ready
   renderAuthButton()
+  renderConfirmGetContactsButton()
 
 }

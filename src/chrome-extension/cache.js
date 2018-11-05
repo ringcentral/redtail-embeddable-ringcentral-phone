@@ -11,7 +11,9 @@ export function setCache(
 ) {
   cache.set(key, {
     value,
-    expire: (+ new Date()) + expire
+    expire: expire === 'never'
+      ? 'Infinity'
+      : (+ new Date()) + expire
   })
 }
 
