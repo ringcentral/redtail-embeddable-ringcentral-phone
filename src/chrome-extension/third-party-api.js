@@ -24,13 +24,15 @@ import {
   notify,
   host,
   getIdfromHref,
+  getXid,
+  getCSRF,
   sendMsgToBackground,
   getContactInfo
 } from './helpers'
 import {
   getUserId
 } from './content-insert-config'
-import fetch, {jsonHeader} from '../common/fetch'
+import fetch from '../common/fetch'
 import _ from 'lodash'
 import {setCache, getCache} from './cache'
 import logo from './rc-logo'
@@ -60,6 +62,7 @@ let rc = {
 }
 let authEventInited = false
 let cacheKey = 'contacts'
+let currentUserId = ''
 let isFetchingContacts = false
 const phoneFormat = 'National'
 
@@ -75,7 +78,7 @@ function buildFormData(data) {
     }, '')
 }
 
-async function getContactId(body) {
+async function getContact(body) {
   if (body.call) {
     let obj = _.find(
       [
@@ -84,7 +87,7 @@ async function getContactId(body) {
       ],
       m => m.type === serviceName
     )
-    return obj ? obj.id : null
+    return obj ? obj : {}
   }
 }
 
@@ -133,8 +136,8 @@ async function syncCallLogToRedtail(body) {
 }
 
 async function doSync(body, formData) {
-  let contactId = await getContactId(body)
-  if (!contactId) {
+  let {id: contact_id, name: contact_name} = await getContact(body)
+  if (!contact_id) {
     return notify('no related contact', 'warn')
   }
   let toNumber = _.get(body, 'call.to.phoneNumber')
@@ -142,55 +145,51 @@ async function doSync(body, formData) {
   let {duration} = body.call
   let details = `
     Call from ${fromNumber} to ${toNumber}, duration: ${duration} seconds.
-    ${formData.description || ''}
+    ${formData.title || ''}
   `
   let start = moment(body.call.startTime).format(formatDate)
   let end = moment(body.call.startTime + duration * 1000).format(formatDate)
-  let token = await getVerifyToken(contactId)
+  let sd = start.format('DD/MM/YYYY')
+  let st = start.format('H:ma')
+  let ed = end.format('DD/MM/YYYY')
+  let et = end.format('H:ma')
   let data = {
-    EntityType: 'Event',
-    'Fields[LookupField_10393]': formData.title || 'Call Log',
-    'Fields[LookupField_10394]': '',
-    'Fields[LookupField_10395]': start,
-    'Fields[LookupField_10396]': end,
-    'Fields[LookupField_10439]': false,
-    'Fields[LookupField_10440]': details,
-    'Fields[LookupField_10446]': true,
-    EntityId: '',
-    RelatedEntityType: 'Contact',
-    RelatedEntityId: contactId,
-    InModal: true,
-    bulkCommand: '',
-    isBulkCommand: false,
-    __RequestVerificationToken: token
+    utf8: '✓',
+    contact_name,
+    contact_id,
+    'crm_activity[subject]': details,
+    'crm_activity[all_day]': 0,
+    'crm_activity[start_date]': sd,
+    'crm_activity[start_time]': st,
+    'crm_activity[end_date]': ed,
+    'crm_activity[end_time]': et,
+    'crm_activity[activity_code_id]': 3,
+    'crm_activity[category_id]': 2,
+    attendee: currentUserId,
+    'crm_activity[importance]': 2,
+    'crm_activity[priority]': '',
+    commit: 'Create Activity'
   }
+
   /*
-EntityType: Event
-Fields[LookupField_10393]: TA
-Fields[LookupField_10394]:
-Fields[LookupField_10395]: 14-Oct-2018 08:00 PM
-Fields[LookupField_10396]: 14-Oct-2018 09:00 PM
-Fields[LookupField_10439]: false
-Fields[LookupField_10440]: WHAT
-Fields[LookupField_10446]: true
-EntityId:
-RelatedEntityType: Contact
-RelatedEntityId: 273196913
-InModal: true
-bulkCommand:
-isBulkCommand: false
-__RequestVerificationToken: h480cvYO_JTDnFF4KR2fczcDH1x2QdqhpjFRXOs12Abv265WhHNhT7Whamn4zNYSUmbJh-133di9qqBHgPy1aTP93n2KXCf6WhaGscBY84D9RbFlG298UtHSaZNEDHU6lG2dpQ2
-RedirectType: ActivityReload
-  */
-  //https://crm.na1.insightly.com/Metadata/Create
-  let url = `${host}/Metadata/Create`
+  form data:
+
+utf8=%E2%9C%93&contact_name=Drake+ZHAO&contact_id=2&crm_activity%5Bsubject%5D=ASAS&crm_activity%5Ball_day%5D=0&crm_activity%5Bstart_date%5D=11%2F04%2F2018&crm_activity%5Bstart_time%5D=3%3A30pm&crm_activity%5Bend_date%5D=11%2F04%2F2018&crm_activity%5Bend_time%5D=4%3A30pm&crm_activity%5Bactivity_code_id%5D=3&crm_activity%5Bcategory_id%5D=2&attendee=292048&crm_activity%5Bimportance%5D=2&crm_activity%5Bpriority%5D=&commit=Create+Activity
+
+*/
+
+  let url = `${host}/activities`
   let res = await fetch.post(url, {}, {
     headers: {
-      ...jsonHeader,
-      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+      Accept: '*/*;q=0.5, text/javascript, application/javascript',
+      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      'X-CSRF-Token': getCSRF(),
+      'X-NewRelic-ID': getXid(),
+      'X-Requested-With': 'XMLHttpRequest'
     },
     body: buildFormData(data)
   })
+  console.log(res)
   if (res && res.id) {
     notifySyncSuccess({id: res.id})
   } else {
@@ -705,7 +704,8 @@ export default async function initThirdPartyApi () {
     return
   }
   authEventInited = true
-  cacheKey = cacheKey + getUserId()
+  currentUserId = parseInt(getUserId(), 10)
+  cacheKey = cacheKey + currentUserId
   console.log(cacheKey, 'cacheKey')
   window.addEventListener('message', handleRCEvents)
 
