@@ -40,7 +40,6 @@ import extLinkSvg from './link-external.svg'
 import {findMatchContacts, searchContacts} from './contacts'
 import {showActivityDetail, getActivities} from './activities'
 
-let formatDate = 'DD-MMM-YYYY hh:mm A'
 let {
   showCallLogSyncForm,
   serviceName
@@ -96,11 +95,11 @@ function notifySyncSuccess({
   id
 }) {
   let type = 'success'
-  let url = `${host}/details/Event/${id}`
+  let url = `${host}/contacts/${id}`
   let msg = `
     <div>
       <div class="rc-pd1b">
-        Call log synced to insightly!
+        Call log synced to redtailCRM!
       </div>
       <div class="rc-pd1b">
         <a href="${url}" target="_blank">
@@ -143,12 +142,9 @@ async function doSync(body, formData) {
   let toNumber = _.get(body, 'call.to.phoneNumber')
   let fromNumber = _.get(body, 'call.from.phoneNumber')
   let {duration} = body.call
-  let details = `
-    Call from ${fromNumber} to ${toNumber}, duration: ${duration} seconds.
-    ${formData.title || ''}
-  `
-  let start = moment(body.call.startTime).format(formatDate)
-  let end = moment(body.call.startTime + duration * 1000).format(formatDate)
+  let details = `${formData.title || ''}:Call from ${fromNumber} to ${toNumber}, duration: ${duration} seconds.`
+  let start = moment(body.call.startTime)
+  let end = moment(body.call.startTime + duration * 1000)
   let sd = start.format('DD/MM/YYYY')
   let st = start.format('H:ma')
   let ed = end.format('DD/MM/YYYY')
@@ -157,12 +153,13 @@ async function doSync(body, formData) {
     utf8: '✓',
     contact_name,
     contact_id,
-    'crm_activity[subject]': details,
+    'crm_activity[subject]': (formData.title || 'Autosync:') + details,
     'crm_activity[all_day]': 0,
     'crm_activity[start_date]': sd,
     'crm_activity[start_time]': st,
     'crm_activity[end_date]': ed,
     'crm_activity[end_time]': et,
+    'crm_activity[description]': details,
     'crm_activity[activity_code_id]': 3,
     'crm_activity[category_id]': 2,
     attendee: currentUserId,
@@ -173,7 +170,7 @@ async function doSync(body, formData) {
 
   /*
   form data:
-
+crm_activity[description]
 utf8=%E2%9C%93&contact_name=Drake+ZHAO&contact_id=2&crm_activity%5Bsubject%5D=ASAS&crm_activity%5Ball_day%5D=0&crm_activity%5Bstart_date%5D=11%2F04%2F2018&crm_activity%5Bstart_time%5D=3%3A30pm&crm_activity%5Bend_date%5D=11%2F04%2F2018&crm_activity%5Bend_time%5D=4%3A30pm&crm_activity%5Bactivity_code_id%5D=3&crm_activity%5Bcategory_id%5D=2&attendee=292048&crm_activity%5Bimportance%5D=2&crm_activity%5Bpriority%5D=&commit=Create+Activity
 
 */
@@ -190,10 +187,10 @@ utf8=%E2%9C%93&contact_name=Drake+ZHAO&contact_id=2&crm_activity%5Bsubject%5D=AS
     body: buildFormData(data)
   })
   console.log(res)
-  if (res && res.id) {
-    notifySyncSuccess({id: res.id})
+  if (res) {
+    notifySyncSuccess({id: contact_id})
   } else {
-    notify('call log sync to insightly failed', 'warn')
+    notify('call log sync to redtailCRM failed', 'warn')
     console.log('post /Metadata/Create error')
     console.log(res)
   }
@@ -203,9 +200,7 @@ async function updateToken(newToken, type = 'apiKey') {
   if (!newToken){
     await ls.clear()
     local = {
-      refreshToken: null,
-      accessToken: null,
-      expireTime: null
+      apiKey: null
     }
   } else if (_.isString(newToken)) {
     local[type] = newToken
@@ -237,12 +232,6 @@ function onClickContactPanel (e) {
     document
       .querySelector('.rc-contact-panel')
       .classList.add('rc-hide-to-side')
-  } else if (
-    classList.contains('rc-phone-span')
-  ) {
-    callWithRingCentral(
-      (target.textContent || '').trim()
-    )
   }
 }
 
@@ -297,7 +286,7 @@ async function showContactInfoPanel(call) {
   //   return showNativeContact(contact, contactTrLinkElem)
   // }
   let {host, protocol} = location
-  let url = `${protocol}//${host}/details/contact/${contact.id}`
+  let url = `${protocol}//${host}/contacts/${contact.id}`
   let elem = createElementFromHTML(
     `
     <div class="animate rc-contact-panel" draggable="false">
@@ -309,8 +298,8 @@ async function showContactInfoPanel(call) {
           </span>
         </div>
       </div>
-      <div class="rc-insightly-contact-frame-box">
-        <iframe class="rc-insightly-contact-frame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups" allow="microphone" src="${url}" id="rc-insightly-contact-frame">
+      <div class="rc-tp-contact-frame-box">
+        <iframe class="rc-tp-contact-frame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups" allow="microphone" src="${url}" id="rc-tp-contact-frame">
         </iframe>
       </div>
       <div class="rc-loading">loading...</div>
@@ -423,7 +412,6 @@ const getContacts = _.debounce(async function (forceUpdate) {
     showSyncTip()
     return cached
   }
-  //https://api.insightly.com/v3.0/Help#!/Contacts/GetEntities
   let url =`${host}/contacts`
   notify(
     'Fetching contacts list, may take a while',

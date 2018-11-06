@@ -93,20 +93,21 @@ body .Adapter_root.Adapter_right
   position absolute
   left 0
 
-.rc-hide-to-side
-  left -500px
-  padding 0
-
 .rc-contact-panel
   position fixed
-  width 300px
+  width 500px
   left 0
   top 0
   bottom 0
   overflow-y scroll
   background #fff
   padding-top 50px
+  z-index 9999
   box-shadow()
+
+.rc-hide-to-side
+  left -500px
+  padding 0
 
 .rc-hide-contact-panel
   left -300px
@@ -148,7 +149,7 @@ body .Adapter_root.Adapter_right
     bottom 0
 
 .rc-loading
-.rc-insightly-contact-frame
+.rc-tp-contact-frame
   position absolute
   left 0
   width 100%
@@ -295,6 +296,8 @@ body .Adapter_root.Adapter_right
 
 .rc-sync-contact-button-wrap
   width 170px
+  bottom 0
+  top auto
   .pointer
     cursor pointer
     text-decoration underline
