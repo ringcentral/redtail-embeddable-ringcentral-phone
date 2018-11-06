@@ -8,6 +8,7 @@
 /temp/
 .vscode/
 /dist/content.js*
+/dist/background.js*
 package-lock.json
 /config.js
 

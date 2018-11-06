@@ -10,6 +10,7 @@
     "tabs",
     "background",
     "tabCapture",
+    "system.display",
     "https://*.redtailtechnology.com/*"
   ],
   "page_action": {
@@ -31,7 +32,9 @@
       "matches": [
         "https://*.redtailtechnology.com/*"
       ],
-      "exclude_matches": [],
+      "exclude_matches": [
+        "https://smf.accounts.redtailtechnology.com/*"
+      ],
       "js": [
         "./content.js"
       ]

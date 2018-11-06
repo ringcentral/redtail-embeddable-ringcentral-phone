@@ -19,11 +19,8 @@ let config = {
 
   //for third party related
   thirdPartyConfigs: {
-    // appKey: ,
-    // appSecret: ,
-    // appRedirect: 'https://zxdong262.github.io/hubspot-embeddable-ringcentral-phone/app/redirect.html',
-    // appServer: ,
-    // apiServer:
+    serviceName: 'RedtailCRM',
+    showCallLogSyncForm: true
   }
 
 }

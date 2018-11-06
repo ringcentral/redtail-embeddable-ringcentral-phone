@@ -9,6 +9,7 @@ import {
   createCallBtnHtml,
   createElementFromHTML,
   callWithRingCentral,
+  onClickPhoneNumber,
   RCBTNCLS2
 } from './helpers'
 
@@ -39,7 +40,7 @@ class insertHandler {
         res.insertMethod = pc.insertMethod
         break
       } catch (e) {
-        console.log(e)
+        //console.log(e)
       }
     }
     return res
@@ -54,11 +55,11 @@ class insertHandler {
   }
 
   //in contact call tab try add call with ringcentral button
-  tryAddCallBtn = () => {
+  tryAddCallBtn = async () => {
     let {href} = location
     let {
       urlCheck,
-      getContactPhoneNumber
+      getContactPhoneNumbers
     } = this.config
     if (!urlCheck(href)) {
       return
@@ -70,22 +71,27 @@ class insertHandler {
     if (callWithRingCentralBtn) {
       return
     }
-    let phoneNumber = getContactPhoneNumber()
-    if (phoneNumber) {
-      this.addCallWithRingCentralButton(phoneNumber)
+    let phoneNumbers = await getContactPhoneNumbers()
+    if (phoneNumbers.length) {
+      this.addCallWithRingCentralButton(phoneNumbers)
     }
   }
 
-  addCallWithRingCentralButton = (phoneNumber) => {
+  addCallWithRingCentralButton = (phoneNumbers) => {
     let {elem, insertMethod} = this.getParentDom()
     if (!elem) {
       return
     }
-    let callByRingCentralBtn = createElementFromHTML(createCallBtnHtml(RCBTNCLS2))
+    let callByRingCentralBtn = createElementFromHTML(
+      createCallBtnHtml(RCBTNCLS2, phoneNumbers)
+    )
+    callByRingCentralBtn.addEventListener('click', (e) => {
+      if (phoneNumbers.length === 1) {
+        return callWithRingCentral(phoneNumbers[0].number)
+      }
+      onClickPhoneNumber(e)
+    })
 
-    callByRingCentralBtn.onclick = () => {
-      callWithRingCentral(phoneNumber)
-    }
     elem[insertMethod](
       callByRingCentralBtn,
       elem.childNodes[0]
@@ -93,6 +99,7 @@ class insertHandler {
   }
 
 }
+
 
 function processInsert(config) {
   return new insertHandler(config)

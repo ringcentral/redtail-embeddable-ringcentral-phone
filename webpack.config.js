@@ -7,7 +7,7 @@ const HappyPack = require('happypack')
 const happyThreadPool = packThreadCount === 0 ? null : HappyPack.ThreadPool({ size: packThreadCount })
 const path = require('path')
 const LodashModuleReplacementPlugin = require('lodash-webpack-plugin')
-
+const pack = require('./package.json')
 const happyConf = {
   loaders: ['babel-loader'],
   threadPool: happyThreadPool,
@@ -25,12 +25,28 @@ const opts = {
   extensions: ['.map', '.js'],
   minBytes: 3789
 }
+const {version} = pack
+
+let {
+  clientID,
+  appServer
+} = sysConfigDefault.ringCentralConfigs
+
+let appConfigQuery = ''
+if (clientID || appServer) {
+  appConfigQuery = `?clientID=${clientID}&appServer=${encodeURIComponent(appServer)}`
+}
 
 const pug = {
   loader: 'pug-html-loader',
   options: {
     data: {
-      _global: {}
+      version,
+      appConfigQuery,
+      _global: {
+        version,
+        appConfigQuery
+      }
     }
   }
 }
@@ -38,7 +54,10 @@ const pug = {
 var config = {
   mode: 'production',
   entry: {
-    content: './src/chrome-extension/content.js'
+    content: './src/chrome-extension/content.js',
+    background: './src/chrome-extension/background.js',
+    app: './src/app/app.js',
+    standalone: './src/app/standalone.pug'
   },
   output: {
     path: __dirname + '/dist',
@@ -86,7 +105,7 @@ var config = {
       {
         test: /\.pug$/,
         use: [
-          'file-loader?name=../app/redirect.html',
+          'file-loader?name=./standalone.html',
           'concat-loader',
           'extract-loader',
           'html-loader',

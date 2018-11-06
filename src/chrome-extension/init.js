@@ -3,23 +3,16 @@
 import initThirdPartyApi from './third-party-api'
 import insertClickToCall from './insert-click-to-call-button'
 import addHoverEvent from './hover-to-show-call-button'
+import initStandaloneWidgets from './init-standalone-widgets'
 import convertPhoneLink from './make-phone-number-clickable'
 import {
-  popup
+  addRuntimeEventListener,
+  once
 } from './helpers'
 import './style.styl'
 import './custom.styl'
 
 function registerService() {
-  // Listen message from background.js to open app window when user click icon.
-  chrome.runtime.onMessage.addListener(
-    function(request, sender, sendResponse) {
-      if (request.action === 'openAppWindow') {
-        popup()
-      }
-      sendResponse('ok')
-    }
-  )
 
   // handle contacts sync feature
   initThirdPartyApi()
@@ -32,15 +25,35 @@ function registerService() {
 
   // convert phonenumber text to click-to-dial link
   convertPhoneLink()
+
+  // initStandaloneWidgets button
+  initStandaloneWidgets()
 }
 
 let registered = false
 export default () => {
-  window.addEventListener('message', function (e) {
-    const data = e.data
-    if (data && data.type === 'rc-adapter-pushAdapterState' && registered === false) {
-      registered = true
-      registerService()
+  addRuntimeEventListener(
+    function(request, sender, sendResponse) {
+      if (request.to === 'content') {
+        console.log('!1!!get msg from standalone.js to content.js')
+        console.log(request.data)
+        window.postMessage(request.data, '*')
+        let {requestId} = request.data
+        if (requestId) {
+          once(requestId, sendResponse)
+        } else {
+          sendResponse()
+        }
+      }
     }
-  })
+  )
+  registered = true
+  registerService()
+  // window.addEventListener('message', function (e) {
+  //   const data = e.data
+  //   if (data && data.type === 'rc-adapter-pushAdapterState' && registered === false) {
+  //     registered = true
+  //     registerService()
+  //   }
+  // })
 }
