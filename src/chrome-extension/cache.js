@@ -2,14 +2,14 @@
  * cache module
  */
 
-let cache = new Map()
+import * as ls from './ls'
 
 export function setCache(
   key,
   value,
   expire = 10000
 ) {
-  cache.set(key, {
+  return ls.set(key, {
     value,
     expire: expire === 'never'
       ? 'Infinity'
@@ -17,9 +17,9 @@ export function setCache(
   })
 }
 
-export function getCache(key) {
+export async function getCache(key) {
   let now = + new Date()
-  let v = cache.get(key)
+  let v = await ls.get(key)
   return v && v.expire > now
     ? v.value
     : null

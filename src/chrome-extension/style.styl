@@ -298,6 +298,9 @@ body .Adapter_root.Adapter_right
   width 170px
   bottom 0
   top auto
+  .rc-sync-tip
+    height 0
+    overflow hidden
   .pointer
     cursor pointer
     text-decoration underline
@@ -307,3 +310,6 @@ body .Adapter_root.Adapter_right
     color green
   .rc-no-sync-contact
     color red
+  &:hover
+    .rc-sync-tip
+      height auto
