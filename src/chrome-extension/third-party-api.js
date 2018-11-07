@@ -20,7 +20,6 @@ import {
   popup,
   APIKEYLS,
   checkPhoneNumber,
-  callWithRingCentral,
   notify,
   host,
   getIdfromHref,
@@ -63,7 +62,18 @@ let authEventInited = false
 let cacheKey = 'contacts'
 let currentUserId = ''
 let isFetchingContacts = false
+let syncHanlder = null
 const phoneFormat = 'National'
+
+const showSyncTip = _.debounce(function() {
+  document
+    .querySelector('.rc-sync-contact-button-wrap')
+    .classList.remove('rc-hide-to-side')
+  clearTimeout(syncHanlder)
+  syncHanlder = setTimeout(hideSyncTip, 15000)
+}, 10000, {
+  leading: true
+})
 
 function buildFormData(data) {
   return Object.keys(data)
@@ -381,12 +391,6 @@ async function getContactsDetails(html) {
   return final
 }
 
-function showSyncTip() {
-  document
-    .querySelector('.rc-sync-contact-button-wrap')
-    .classList.remove('rc-hide-to-side')
-}
-
 function hideSyncTip() {
   document
     .querySelector('.rc-sync-contact-button-wrap')
@@ -406,7 +410,7 @@ const getContacts = _.debounce(async function (forceUpdate) {
   }
   let cached = forceUpdate
     ? false
-    : getCache(cacheKey)
+    : await getCache(cacheKey)
   if (cached) {
     console.log('use cache')
     showSyncTip()
@@ -435,7 +439,7 @@ const getContacts = _.debounce(async function (forceUpdate) {
   }
   let final = await getContactsDetails(res)
   isFetchingContacts = false
-  setCache(cacheKey, final, 'never')
+  await setCache(cacheKey, final, 'never')
   notify(
     'Fetching contacts list done',
     'success'
@@ -530,8 +534,11 @@ function renderConfirmGetContactsButton() {
     `
       <div
         class="rc-sync-contact-button-wrap animate rc-hide-to-side"
-        title="After sync, you can access lastest ${serviceName} contacts from RingCentral phone's contacts list. But if you do not want to update ${serviceName} contact list in RingCentral phone, you can skip this by click close button"
+        title=""
       >
+        <div class="rc-sync-tip animate">
+        After sync, you can access lastest ${serviceName} contacts from RingCentral phone's contacts list. you can skip this by click close button.
+        </div>
         <span class="rc-iblock">Sync contacts?</span>
         </span>
         <span class="rc-do-sync-contact rc-iblock pointer">Yes</span>
