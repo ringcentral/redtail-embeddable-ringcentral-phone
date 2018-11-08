@@ -11,6 +11,9 @@ Created with [Embbnux Ji](https://github.com/embbnux)'s tuturial:
 - Show contact event from RingCentral Widgets
 - Manully/auto Sync Call log to RedtailCRM contact event
 
+## Video demo
+https://youtu.be/fAwsIBv5Mcw
+
 ## Build and Use
 
 1. build `content.js`

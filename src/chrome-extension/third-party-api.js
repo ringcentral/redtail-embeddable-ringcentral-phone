@@ -207,24 +207,9 @@ utf8=%E2%9C%93&contact_name=Drake+ZHAO&contact_id=2&crm_activity%5Bsubject%5D=AS
 }
 
 async function updateToken(newToken, type = 'apiKey') {
-  if (!newToken){
-    await ls.clear()
-    local = {
-      apiKey: null
-    }
-  } else if (_.isString(newToken)) {
-    local[type] = newToken
-    let key = lsKeys[`${type}LSKey`]
-    await ls.set(key, newToken)
-  } else {
-    Object.assign(local, newToken)
-    let ext = Object.keys(newToken)
-      .reduce((prev, key) => {
-        prev[lsKeys[`${key}LSKey`]] = newToken[key]
-        return prev
-      }, {})
-    await ls.set(ext)
-  }
+  local[type] = newToken
+  let key = lsKeys[`${type}LSKey`]
+  await ls.set(key, newToken)
 }
 
 function formatPhone(phone) {
@@ -401,9 +386,6 @@ function hideSyncTip() {
  * get contact lists
  */
 const getContacts = _.debounce(async function (forceUpdate) {
-  if (isFetchingContacts) {
-    return []
-  }
   if (!local.apiKey) {
     showAuthBtn()
     return []
@@ -413,8 +395,13 @@ const getContacts = _.debounce(async function (forceUpdate) {
     : await getCache(cacheKey)
   if (cached) {
     console.log('use cache')
-    showSyncTip()
+    if (!isFetchingContacts) {
+      showSyncTip()
+    }
     return cached
+  }
+  if (isFetchingContacts) {
+    return []
   }
   let url =`${host}/contacts`
   notify(
@@ -446,7 +433,9 @@ const getContacts = _.debounce(async function (forceUpdate) {
   )
   popup()
   return final
-}, 500)
+}, 100, {
+  leading: true
+})
 
 function notifyRCAuthed(authorized = true) {
   rc.postMessage({
@@ -456,7 +445,7 @@ function notifyRCAuthed(authorized = true) {
 }
 
 async function unAuth() {
-  await updateToken(null)
+  await updateToken('')
   notifyRCAuthed(false)
 }
 
@@ -561,9 +550,9 @@ function renderConfirmGetContactsButton() {
  */
 async function handleRCEvents(e) {
   let {data} = e
-  console.log('======data======')
-  console.log(data, data.type, data.path)
-  console.log('======data======')
+  // console.log('======data======')
+  // console.log(data, data.type, data.path)
+  // console.log('======data======')
   if (!data) {
     return
   }
@@ -572,7 +561,7 @@ async function handleRCEvents(e) {
     return initRCEvent()
   }
   if (type ===  'rc-login-status-notify') {
-    console.log('rc logined', loggedIn)
+    console.log(loggedIn, 'loggedIn')
   }
   if (
     type === 'rc-route-changed-notify' &&
@@ -596,7 +585,7 @@ async function handleRCEvents(e) {
     if (local.apiKey) {
       unAuth()
     } else {
-      doAuth()
+      showAuthBtn()
     }
     rc.postMessage({
       type: 'rc-post-message-response',
@@ -690,6 +679,7 @@ function initRCEvent() {
     }
   }
   rc.postMessage(data)
+  console.log(local.apiKey, 'local.apiKey')
   if (local.apiKey) {
     notifyRCAuthed()
   }
@@ -706,7 +696,7 @@ export default async function initThirdPartyApi () {
   window.addEventListener('message', handleRCEvents)
 
   //hanlde contacts events
-  let apiKey = await ls.get(lsKeys.apiKeyLSKey) || null
+  let apiKey = await ls.get(lsKeys.apiKeyLSKey) || ''
   local = {
     apiKey
   }

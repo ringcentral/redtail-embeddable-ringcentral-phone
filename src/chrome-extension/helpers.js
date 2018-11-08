@@ -10,6 +10,7 @@ export const RCBTNCLS2 = 'call-with-rc-btn'
 export const RCTOOLTIPCLS = 'rc-tooltip'
 export const RCLOADINGCLS = 'rc-loading-wrap'
 export const serviceName = ''
+export const APIKEYLS = 'rcapikey'
 export const host = getHost()
 
 const phoneFormat = 'National'
