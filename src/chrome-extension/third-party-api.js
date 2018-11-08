@@ -418,7 +418,7 @@ const getContacts = _.debounce(async function (forceUpdate) {
   }
   let url =`${host}/contacts`
   notify(
-    'Fetching contacts list, may take a while',
+    'Fetching contacts list, may take minutes, please stay in this page until it is done.',
     'info',
     1000 * 60 * 60
   )
@@ -494,6 +494,7 @@ function onClickSyncPanel(e) {
   let {classList}= target
   if (target.classList.contains('rc-do-sync-contact')) {
     getContacts(true)
+    hideSyncTip()
   } else if (classList.contains('rc-no-sync-contact')) {
     hideSyncTip()
   }
@@ -709,7 +710,6 @@ export default async function initThirdPartyApi () {
   local = {
     apiKey
   }
-
   //get the html ready
   renderAuthButton()
   renderConfirmGetContactsButton()
