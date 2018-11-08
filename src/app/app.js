@@ -12,14 +12,10 @@ function sendMsg (data) {
 }
 
 function onMsg(e) {
-  console.log('send msg to content.js from standalone.js')
-  console.log(e.data)
   chrome.runtime.sendMessage({
     data: e.data,
     to: 'content'
   }, res => {
-    console.log('send msg to content.js from standalone.js, get response')
-    console.log(res)
     let arr = _.isArray(res)
       ? res
       : [res]
@@ -36,8 +32,6 @@ function init() {
   chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
       if (request.to === 'standalone') {
-        console.log('get msg from content.js to standalone.js')
-        console.log(request.data)
         sendMsg(request.data)
         sendResponse()
       }

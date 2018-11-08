@@ -10,14 +10,6 @@ function getDisplayInfo() {
   })
 }
 
-function getWindowById(id) {
-  return new Promise(resolve => {
-    chrome.windows.get(id, (win) => {
-      resolve(win)
-    })
-  })
-}
-
 function popup() {
   if (!standaloneWindow) {
     return initStandaloneWindow()
@@ -63,7 +55,6 @@ async function initStandaloneWindow() {
 }
 
 function getStandaloneWindowTab() {
-  console.log('standwind', standaloneWindow)
   return _.get(standaloneWindow, 'tabs[0]')
 }
 
@@ -76,21 +67,16 @@ function sendMsgToTab(tab, data) {
 }
 
 async function sendMsgToStandAlone(data) {
-  console.log('dt to st', data)
   let tab = getStandaloneWindowTab()
   if (!tab) {
-    console.log('did not find standalone tag')
     return
   }
-  console.log('data to sl', data)
   return sendMsgToTab(tab, data)
 }
 
 async function sendMsgToContent(data) {
   let res = {}
-  console.log(activeTabIds, 'activeTabIds')
   for (let id of activeTabIds) {
-    console.log(id, 'id')
     let response = await sendMsgToTab({id}, data)
     res[id] = response
   }
@@ -110,8 +96,7 @@ function getTabFromId(id) {
     .catch(() => {id})
 }
 
-async function onTabEvent(_tab, action, changeInfo) {
-  console.log(_tab, '_tab')
+async function onTabEvent(_tab, action) {
   let tab = _.isPlainObject(_tab)
     ? _tab
     : await getTabFromId(_tab)
@@ -119,12 +104,10 @@ async function onTabEvent(_tab, action, changeInfo) {
   if (
     checkTab(tab)
   ) {
-    console.log('checktab pass', action)
     if (action !== 'remove') {
       chrome.pageAction.show(id)
     }
     if (action === 'add') {
-      console.log('tab add')
       activeTabIds.add(id)
     } else if (action === 'remove') {
       activeTabIds.remove(id)
@@ -155,9 +138,7 @@ chrome.pageAction.onClicked.addListener(function (tab) {
     checkTab(tab)
   ) {
     // send message to content.js to to open app window.
-    chrome.tabs.sendMessage(tab.id, { action: 'openAppWindow' }, function(response) {
-      console.log(response)
-    })
+    chrome.tabs.sendMessage(tab.id, { action: 'openAppWindow' }, function() {})
     initStandaloneWindow()
     return
   }

@@ -16,7 +16,7 @@ let {
  * @param {array} contacts
  * @param {string} keyword
  */
-export function findMatchContacts(contacts, numbers) {
+export function findMatchContacts(contacts = [], numbers) {
   let {formatedNumbers, formatNumbersMap} = numbers.reduce((prev, n) => {
     let nn = formatPhone(n)
     prev.formatedNumbers.push(nn)
@@ -67,7 +67,7 @@ export function findMatchContacts(contacts, numbers) {
  * @param {array} contacts
  * @param {string} keyword
  */
-export function searchContacts(contacts, keyword) {
+export function searchContacts(contacts = [], keyword) {
   return contacts.filter(contact => {
     let {
       name,

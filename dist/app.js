@@ -81,12 +81,12 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 254);
+/******/ 	return __webpack_require__(__webpack_require__.s = 253);
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ 254:
+/***/ 253:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -107,14 +107,10 @@ function sendMsg(data) {
 }
 
 function onMsg(e) {
-  console.log('send msg to content.js from standalone.js');
-  console.log(e.data);
   chrome.runtime.sendMessage({
     data: e.data,
     to: 'content'
   }, res => {
-    console.log('send msg to content.js from standalone.js, get response');
-    console.log(res);
     let arr = (0, _isArray3.default)(res) ? res : [res];
     for (let obj of arr) {
       if (obj) {
@@ -128,8 +124,6 @@ function init() {
   window.addEventListener('message', onMsg);
   chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     if (request.to === 'standalone') {
-      console.log('get msg from content.js to standalone.js');
-      console.log(request.data);
       sendMsg(request.data);
       sendResponse();
     }

@@ -152,11 +152,11 @@ class HoverHandler {
     }
   }
 
-  hideRCBtn = _.debounce(() => {
+  hideRCBtn = () => {
     this.currentRow = null
     let {tooltip} = this.getRCTooltip()
     tooltip.setAttribute('style', 'display:none')
-  }, 200)
+  }
 
   tryRMEvents = () => {
     document.removeEventListener('mouseenter', this.handleAddRCBtn, true)
