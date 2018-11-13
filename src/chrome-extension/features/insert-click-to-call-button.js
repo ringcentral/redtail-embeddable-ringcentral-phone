@@ -1,9 +1,9 @@
 /**
- * insert click-to-call button at special position/page based on './content-insert-config.js'
+ * insert click-to-call button at special position/page based on '../config.js'
  * but still, you can add custom button if the config does not meet your needs
  */
 
-import {insertClickToCallButton} from './content-insert-config'
+import {insertClickToCallButton} from '../config'
 import {
   dirtyLoop,
   createCallBtnHtml,
@@ -11,7 +11,7 @@ import {
   callWithRingCentral,
   onClickPhoneNumber,
   RCBTNCLS2
-} from './helpers'
+} from '../common/helpers'
 
 class insertHandler {
   constructor(config) {

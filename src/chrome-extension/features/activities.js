@@ -2,14 +2,14 @@
  * third party activies related feature
  */
 
-import extLinkSvg from './link-external.svg'
+import extLinkSvg from '../common/link-external.svg'
 import _ from 'lodash'
 import moment from 'moment'
 import $ from 'jquery'
 import {
   notify,
   getContactInfo
-} from './helpers'
+} from '../common/helpers'
 
 export function showActivityDetail(body) {
   let {activity = {}} = body

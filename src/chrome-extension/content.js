@@ -1,5 +1,5 @@
 
 
-import main from './init'
+import main from './common/init'
 
 window.addEventListener('load', main)

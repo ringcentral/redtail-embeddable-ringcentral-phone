@@ -1,14 +1,15 @@
 /**
- * config content config file
+ * run time config
  * with proper config, insert `call with ringcentral` button or hover some elemet show call button tooltip can be easily done
  * but it is not a required, you can just write your own code, ignore this
  */
+
 import {
   RCBTNCLS2,
   checkPhoneNumber,
   createElementFromHTML,
   getNumbers
-} from './helpers'
+} from './common/helpers'
 
 function getIds(href) {
   let reg = /\/contacts\/(\d+)/

@@ -1,11 +1,11 @@
 /**
  * add event handler to developer configed element,
  * show click-to-dial tooltip to the elements
- * config defined at './content-insert-config' hoverShowClickToCallButton section
+ * config defined at '../config' hoverShowClickToCallButton section
  * but still, you can add custom behaviors if the config does not meet your needs
  */
 
-import {hoverShowClickToCallButton} from './content-insert-config'
+import {hoverShowClickToCallButton} from '../config'
 import _ from 'lodash'
 import {
   dirtyLoop,
@@ -19,8 +19,8 @@ import {
   onClickPhoneNumber,
   RCLOADINGCLS,
   createPhoneList
-} from './helpers'
-import createLoading from './loading'
+} from '../common/helpers'
+import createLoading from '../common/loading'
 
 class HoverHandler {
   constructor(config) {

@@ -56,8 +56,8 @@ var config = {
   entry: {
     content: './src/chrome-extension/content.js',
     background: './src/chrome-extension/background.js',
-    app: './src/app/app.js',
-    standalone: './src/app/standalone.pug'
+    app: './src/chrome-extension/app/app.js',
+    standalone: './src/chrome-extension/app/standalone.pug'
   },
   output: {
     path: __dirname + '/dist',

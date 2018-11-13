@@ -1,16 +1,16 @@
 /**
  * make phone number text to tel link and click-to-dial
- * config proper selector in './content-insert-config.js', it will be done
+ * config proper selector in '../config.js', it will be done
  * but still, you can add custom behaviors if the config does not meet your needs
  */
 
-import {phoneNumberSelectors} from './content-insert-config'
+import {phoneNumberSelectors} from '../config'
 import {
   dirtyLoop,
   createElementFromHTML,
   checkPhoneNumber,
   callWithRingCentral
-} from './helpers'
+} from '../common/helpers'
 
 class LinkHandler {
   constructor(config) {
