@@ -43,7 +43,7 @@ async function initStandaloneWindow() {
       standaloneWindow = wind
       sendMsgToContent({
         action: 'widgets-window-state-notify',
-        widgetsOpened: true
+        widgetsFocused: true
       })
     })
   } else {
@@ -161,7 +161,12 @@ chrome.runtime.onMessage.addListener(async function(request, sender, sendRespons
     popup()
   } else if (action === 'check-window-opened') {
     sendResponse({
-      widgetsOpened: !!standaloneWindow
+      widgetsFocused: !!standaloneWindow
+    })
+  } else if (action === 'check-window-focused') {
+    console.log(standaloneWindow)
+    sendResponse({
+      widgetsFocused: standaloneWindow && standaloneWindow.focused
     })
   }
 })
@@ -172,15 +177,16 @@ chrome.windows.onRemoved.addListener(function (id) {
   }
   sendMsgToContent({
     action: 'widgets-window-state-notify',
-    widgetsOpened: false
+    widgetsFocused: false
   })
 })
 
 chrome.windows.onFocusChanged.addListener(function (id) {
   if (standaloneWindow && standaloneWindow.id !== id) {
+    console.log(standaloneWindow)
     sendMsgToContent({
       action: 'widgets-window-state-notify',
-      widgetsOpened: false
+      widgetsFocused: false
     })
   }
 })
