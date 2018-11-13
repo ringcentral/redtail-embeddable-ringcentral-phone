@@ -19,7 +19,7 @@ let {
   serviceName
 } = thirdPartyConfigs
 
-let lsKeys = {
+export let lsKeys = {
   apiKeyLSKey: APIKEYLS
 }
 window.rc = {

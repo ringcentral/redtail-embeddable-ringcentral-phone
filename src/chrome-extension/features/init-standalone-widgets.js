@@ -7,7 +7,6 @@
 
 import {
   createElementFromHTML,
-  sendMsgToBackground,
   createCallBtnHtml,
   addRuntimeEventListener,
   popup
@@ -17,8 +16,8 @@ function onClickInitExt() {
   popup()
 }
 
-function toggleInitButton(btn, widgetsOpened) {
-  if (widgetsOpened) {
+function toggleInitButton(btn, widgetsFocused) {
+  if (widgetsFocused) {
     btn.classList.remove('rc-show-init')
   } else {
     btn.classList.add('rc-show-init')
@@ -26,9 +25,7 @@ function toggleInitButton(btn, widgetsOpened) {
 }
 
 export default async () => {
-  let {widgetsOpened} = await sendMsgToBackground({
-    action: 'check-window-opened'
-  }) || {}
+  let widgetsFocused = false
   let dom = createElementFromHTML(
     `<div class="rc-init-ext-wrap animate" id="rc-init-ext-wrap">
       ${createCallBtnHtml('rc-init-ext')}
@@ -41,11 +38,11 @@ export default async () => {
     document.body.appendChild(dom)
     btn = dom
   }
-  toggleInitButton(btn, widgetsOpened)
+  toggleInitButton(btn, widgetsFocused)
   addRuntimeEventListener(
     function(request, sender, sendResponse) {
       if (request.action === 'widgets-window-state-notify') {
-        toggleInitButton(btn, request.widgetsOpened)
+        toggleInitButton(btn, request.widgetsFocused)
       } else {
         console.log('get msg now', request)
         window.postMessage(request, '*')

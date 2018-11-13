@@ -9,6 +9,14 @@
  */
 
 import {thirdPartyConfigs} from '../common/app-config'
+import {
+  showAuthBtn,
+  unAuth,
+  renderAuthButton,
+  notifyRCAuthed,
+  lsKeys
+} from './auth'
+import * as ls from '../common/ls'
 import _ from 'lodash'
 import {
   findMatchContacts,
@@ -20,12 +28,7 @@ import {
 } from './contacts'
 import {showActivityDetail, getActivities} from './activities'
 import {syncCallLogToRedtail} from './call-log-sync'
-import {
-  showAuthBtn,
-  unAuth,
-  renderAuthButton,
-  notifyRCAuthed
-} from './auth'
+
 
 let {
   serviceName
@@ -168,7 +171,7 @@ function initRCEvent() {
     }
   }
   window.rc.postMessage(data)
-  if (window.local.apiKey) {
+  if (window.rc.local.apiKey) {
     notifyRCAuthed()
   }
 }
@@ -179,7 +182,11 @@ export default async function initThirdPartyApi () {
   }
   authEventInited = true
   window.addEventListener('message', handleRCEvents)
-
+  //hanlde contacts events
+  let apiKey = await ls.get(lsKeys.apiKeyLSKey) || ''
+  window.rc.local = {
+    apiKey
+  }
   //get the html ready
   renderAuthButton()
   renderConfirmGetContactsButton()
