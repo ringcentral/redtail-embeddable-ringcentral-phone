@@ -2,7 +2,7 @@
  * since it is not a single page app,
  * so we do not want to init widgets every time when url change
  * instead we add a button to wake the standalone widgets in single page
- * after the initial, hide the button
+ * hide the button when widget window active
  */
 
 import {
@@ -11,7 +11,7 @@ import {
   createCallBtnHtml,
   addRuntimeEventListener,
   popup
-} from './helpers'
+} from '../common/helpers'
 
 function onClickInitExt() {
   popup()
