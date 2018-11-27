@@ -71,6 +71,10 @@ function notifySyncSuccess({
 }
 
 export async function syncCallLogToRedtail(body) {
+  let result = _.get(body, 'call.result')
+  if (result !== 'Call connected') {
+    return
+  }
   let isManuallySync = !body.triggerType
   let isAutoSync = body.triggerType === 'callLogSync'
   if (!isAutoSync && !isManuallySync) {
