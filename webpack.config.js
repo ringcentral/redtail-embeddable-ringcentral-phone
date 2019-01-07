@@ -2,18 +2,9 @@
 const webpack = require('webpack')
 const sysConfigDefault = require('./config.default')
 const ExtraneousFileCleanupPlugin = require('webpack-extraneous-file-cleanup-plugin')
-const packThreadCount = sysConfigDefault.devCPUCount // number
-const HappyPack = require('happypack')
-const happyThreadPool = packThreadCount === 0 ? null : HappyPack.ThreadPool({ size: packThreadCount })
 const path = require('path')
 const LodashModuleReplacementPlugin = require('lodash-webpack-plugin')
 const pack = require('./package.json')
-const happyConf = {
-  loaders: ['babel-loader'],
-  threadPool: happyThreadPool,
-  verbose: true
-}
-
 const stylusSettingPlugin =  new webpack.LoaderOptionsPlugin({
   test: /\.styl$/,
   stylus: {
@@ -23,9 +14,9 @@ const stylusSettingPlugin =  new webpack.LoaderOptionsPlugin({
 
 const opts = {
   extensions: ['.map', '.js'],
-  minBytes: 3789
+  minBytes: 3900
 }
-const {version} = pack
+
 
 let {
   clientID,
@@ -36,6 +27,8 @@ let appConfigQuery = ''
 if (clientID || appServer) {
   appConfigQuery = `?clientID=${clientID}&appServer=${encodeURIComponent(appServer)}`
 }
+
+const {version} = pack
 
 const pug = {
   loader: 'pug-html-loader',
@@ -51,13 +44,15 @@ const pug = {
   }
 }
 
+
 var config = {
   mode: 'production',
   entry: {
-    content: './src/chrome-extension/content.js',
-    background: './src/chrome-extension/background.js',
-    app: './src/chrome-extension/app/app.js',
-    standalone: './src/chrome-extension/app/standalone.pug'
+    content: './src/content.js',
+    background: './src/background.js',
+    standalone: './node_modules/ringcentral-embeddable-extension-common/src/app/standalone.pug',
+    app: './node_modules/ringcentral-embeddable-extension-common/src/app/app.js',
+    manifest: './src/manifest.json'
   },
   output: {
     path: __dirname + '/dist',
@@ -72,22 +67,51 @@ var config = {
   },
   resolveLoader: {
     modules: [
+      path.join(process.cwd(), 'loaders'),
       path.join(process.cwd(), 'node_modules')
     ]
   },
   optimization: {
-    // We no not want to minimize our code.
     minimize: sysConfigDefault.minimize
   },
   module: {
     rules: [
       {
-        test: /\.jsx?$/,
-        exclude: /node_modules/,
+        test: /manifest\.json$/,
         use: [
-          packThreadCount === 0
-            ? 'babel-loader?cacheDirectory'
-            : 'happypack/loader?cacheDirectory'
+          'manifest-loader'
+        ]
+      },
+      {
+        test: /\.jsx?$/,
+        exclude: /node_modules\/(?!(ringcentral-embeddable-extension-common)\/).*/,
+        use: [
+          {
+            loader: 'babel-loader',
+            options: {
+              cacheDirectory: true,
+              presets: [
+                '@babel/preset-env'
+              ],
+              plugins: [
+                '@babel/plugin-proposal-class-properties',
+                'babel-plugin-lodash',
+                '@babel/plugin-syntax-dynamic-import',
+                [
+                  '@babel/plugin-proposal-decorators',
+                  {
+                    legacy: true
+                  }
+                ],
+                [
+                  '@babel/plugin-transform-runtime',
+                  {
+                    regenerator: true
+                  }
+                ]
+              ]
+            }
+          }
         ]
       },
       {
@@ -116,7 +140,6 @@ var config = {
   },
   devtool: 'source-map',
   plugins: [
-    packThreadCount === 0 ? null : new HappyPack(happyConf),
     stylusSettingPlugin,
     new LodashModuleReplacementPlugin({
       collections: true,
