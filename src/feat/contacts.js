@@ -3,7 +3,7 @@
  */
 
 import _ from 'lodash'
-import {setCache, getCache} from '../common/cache'
+import {setCache, getCache} from 'ringcentral-embeddable-extension-common/src/common/cache'
 import {
   showAuthBtn
 } from './auth'
@@ -13,13 +13,15 @@ import {
   checkPhoneNumber,
   notify,
   host,
-  getIdfromHref,
-  getContactInfo,
   formatPhone
-} from '../common/helpers'
+} from 'ringcentral-embeddable-extension-common/src/common/helpers'
+import {
+  getIdfromHref,
+  getContactInfo
+} from './common'
 import $ from 'jquery'
-import fetch from '../common/fetch'
-import {thirdPartyConfigs} from '../common/app-config'
+import fetch from 'ringcentral-embeddable-extension-common/src/common/fetch'
+import {thirdPartyConfigs} from 'ringcentral-embeddable-extension-common/src/common/app-config'
 
 let {
   serviceName
@@ -83,13 +85,17 @@ export function findMatchContacts(contacts = [], numbers) {
     let {
       phoneNumbers
     } = contact
-    return _.find(phoneNumbers, n => {
+    return phoneNumbers.filter(n => {
+      let f = formatPhone(n.phoneNumber)
+      console.log(f, 'sdfsd')
+      console.log(f, '"' + n.phoneNumber + '"', formatedNumbers, n.phoneNumber === formatedNumbers[0],'hh')
       return formatedNumbers
         .includes(
-          formatPhone(n.phoneNumber)
+          f
         )
-    })
+    }).length
   })
+  console.log(res, JSON.stringify(formatedNumbers), JSON.stringify(contacts), 'pp')
   return res.reduce((prev, it) => {
     let phone = _.find(it.phoneNumbers, n => {
       return formatedNumbers.includes(
@@ -311,8 +317,8 @@ export async function showContactInfoPanel(call) {
           </span>
         </div>
       </div>
-      <div class="rc-tp-contact-frame-box">
-        <iframe class="rc-tp-contact-frame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups" allow="microphone" src="${url}" id="rc-tp-contact-frame">
+      <div class="rc-third-party-contact-frame-box">
+        <iframe class="rc-third-party-contact-frame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups" allow="microphone" src="${url}" id="rc-third-party-contact-frame">
         </iframe>
       </div>
       <div class="rc-loading">loading...</div>

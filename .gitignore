@@ -9,6 +9,9 @@
 .vscode/
 /dist/content.js*
 /dist/background.js*
+/dist/*.json
+/dist/*.html
+/dist/images/
 package-lock.json
 /config.js
 

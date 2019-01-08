@@ -2,20 +2,23 @@
  * call log sync feature
  */
 
-import {thirdPartyConfigs} from '../common/app-config'
-import {createForm} from '../common/call-log-sync-form'
+import {thirdPartyConfigs} from 'ringcentral-embeddable-extension-common/src/common/app-config'
+import fetch from 'ringcentral-embeddable-extension-common/src/common/fetch'
+import {createForm} from './call-log-sync-form'
 import moment from 'moment'
-import extLinkSvg from '../common/link-external.svg'
+import extLinkSvg from 'ringcentral-embeddable-extension-common/src/common/link-external.svg'
 import {
   showAuthBtn
 } from './auth'
 import _ from 'lodash'
 import {
-  notify,
-  host,
   getXid,
   getCSRF
-} from '../common/helpers'
+} from './common'
+import {
+  notify,
+  host
+} from 'ringcentral-embeddable-extension-common/src/common/helpers'
 
 let {
   showCallLogSyncForm,
@@ -71,6 +74,10 @@ function notifySyncSuccess({
 }
 
 export async function syncCallLogToRedtail(body) {
+  let result = _.get(body, 'call.result')
+  if (result !== 'Call connected') {
+    return
+  }
   let isManuallySync = !body.triggerType
   let isAutoSync = body.triggerType === 'callLogSync'
   if (!isAutoSync && !isManuallySync) {
@@ -105,6 +112,7 @@ async function doSync(body, formData) {
   let st = start.format('H:ma')
   let ed = end.format('DD/MM/YYYY')
   let et = end.format('H:ma')
+
   let data = {
     utf8: '✓',
     contact_name,
@@ -112,13 +120,16 @@ async function doSync(body, formData) {
     'crm_activity[subject]': (formData.title || 'Autosync:') + details,
     'crm_activity[all_day]': 0,
     'crm_activity[start_date]': sd,
-    'crm_activity[start_time]': st,
+    'crm_activity[start_time]': '1:15pm',
     'crm_activity[end_date]': ed,
-    'crm_activity[end_time]': et,
+    'crm_activity[end_time]': '1:30pm',
     'crm_activity[description]': details,
     'crm_activity[activity_code_id]': 3,
+    'crm_activity[percentdone]': 0,
+    'crm_activity[repeats]': 'never',
     'crm_activity[category_id]': 2,
-    attendee: window.rc.currentUserId,
+    'crm_activity[attendees_attributes][0][type]': 'Crm::Activity::Attendee::User',
+    'crm_activity[attendees_attributes][0][user_id]': window.rc.currentUserId,
     'crm_activity[importance]': 2,
     'crm_activity[priority]': '',
     commit: 'Create Activity'

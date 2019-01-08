@@ -81,26 +81,19 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 254);
+/******/ 	return __webpack_require__(__webpack_require__.s = 226);
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ 254:
-/***/ (function(module, exports, __webpack_require__) {
+/***/ 226:
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var lodash_isArray__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7);
+/* harmony import */ var lodash_isArray__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lodash_isArray__WEBPACK_IMPORTED_MODULE_0__);
 
-
-var _isArray2 = __webpack_require__(3);
-
-var _isArray3 = _interopRequireDefault(_isArray2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/**
- * send all window.postMessage to chrome extension background page, proxed to content.js
- */
 
 function sendMsg(data) {
   document.querySelector('#rc-widget-adapter-frame').contentWindow.postMessage(data, '*');
@@ -110,11 +103,32 @@ function onMsg(e) {
   chrome.runtime.sendMessage({
     data: e.data,
     to: 'content'
-  }, res => {
-    let arr = (0, _isArray3.default)(res) ? res : [res];
-    for (let obj of arr) {
-      if (obj) {
-        sendMsg(obj);
+  }, function (res) {
+    var arr = lodash_isArray__WEBPACK_IMPORTED_MODULE_0___default()(res) ? res : [res];
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+      for (var _iterator = arr[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        var obj = _step.value;
+
+        if (obj) {
+          sendMsg(obj);
+        }
+      }
+    } catch (err) {
+      _didIteratorError = true;
+      _iteratorError = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion && _iterator.return != null) {
+          _iterator.return();
+        }
+      } finally {
+        if (_didIteratorError) {
+          throw _iteratorError;
+        }
       }
     }
   });
@@ -139,7 +153,7 @@ window.addEventListener('load', init);
 
 /***/ }),
 
-/***/ 3:
+/***/ 7:
 /***/ (function(module, exports) {
 
 /**

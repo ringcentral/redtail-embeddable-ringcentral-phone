@@ -2,18 +2,19 @@
  * auth related feature
  */
 
-import {thirdPartyConfigs} from '../common/app-config'
-import logo from '../common/rc-logo'
+import {thirdPartyConfigs} from 'ringcentral-embeddable-extension-common/src/common/app-config'
+import logo from 'ringcentral-embeddable-extension-common/src/common/rc-logo'
 import {
   createElementFromHTML,
   findParentBySel,
-  APIKEYLS,
   sendMsgToBackground
-} from '../common/helpers'
+} from 'ringcentral-embeddable-extension-common/src/common/helpers'
+import * as ls from 'ringcentral-embeddable-extension-common/src/common/ls'
 import {
-  getUserId
-} from '../config'
-import * as ls from '../common/ls'
+  getUserId,
+  APIKEYLS
+} from './common'
+
 let currentUserId = getUserId()
 let {
   serviceName

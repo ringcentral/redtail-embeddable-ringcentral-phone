@@ -2,14 +2,16 @@
  * third party activies related feature
  */
 
-import extLinkSvg from '../common/link-external.svg'
+import extLinkSvg from 'ringcentral-embeddable-extension-common/src/common/link-external.svg'
 import _ from 'lodash'
 import moment from 'moment'
 import $ from 'jquery'
 import {
-  notify,
+  notify
+} from 'ringcentral-embeddable-extension-common/src/common/helpers'
+import {
   getContactInfo
-} from '../common/helpers'
+} from './common'
 
 export function showActivityDetail(body) {
   let {activity = {}} = body
