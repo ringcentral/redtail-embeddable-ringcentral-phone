@@ -112,6 +112,7 @@ async function doSync(body, formData) {
   let st = start.format('H:ma')
   let ed = end.format('DD/MM/YYYY')
   let et = end.format('H:ma')
+
   let data = {
     utf8: '✓',
     contact_name,
@@ -124,8 +125,11 @@ async function doSync(body, formData) {
     'crm_activity[end_time]': et,
     'crm_activity[description]': details,
     'crm_activity[activity_code_id]': 3,
+    'crm_activity[percentdone]': 0,
+    'crm_activity[repeats]': 'never',
     'crm_activity[category_id]': 2,
-    attendee: window.rc.currentUserId,
+    'crm_activity[attendees_attributes][0][type]': 'Crm::Activity::Attendee::User',
+    'crm_activity[attendees_attributes][0][user_id]': window.rc.currentUserId,
     'crm_activity[importance]': 2,
     'crm_activity[priority]': '',
     commit: 'Create Activity'
