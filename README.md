@@ -18,7 +18,7 @@ https://youtu.be/fAwsIBv5Mcw
 
 1. build `content.js`
 ```bash
-git clone https://github.com/zxdong262/redtail-embeddable-ringcentral-phone.git
+git clone https://github.com/ringcentral/redtail-embeddable-ringcentral-phone.git
 cd redtail-embeddable-ringcentral-phone
 npm i
 cp config.sample.js config.js
