@@ -15,6 +15,7 @@
 package-lock.json
 /config.js
 
+*.zip
 *.pid
 *.seed
 *.gz
