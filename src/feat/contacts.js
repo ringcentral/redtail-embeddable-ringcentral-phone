@@ -5,7 +5,8 @@
 import _ from 'lodash'
 import {setCache, getCache} from 'ringcentral-embeddable-extension-common/src/common/cache'
 import {
-  showAuthBtn
+  showAuthBtn,
+  notifyRCAuthed
 } from './auth'
 import {
   popup,
@@ -254,6 +255,8 @@ export const getContacts = _.debounce(async function (forceUpdate) {
     'success'
   )
   popup()
+  notifyRCAuthed(false)
+  notifyRCAuthed(true)
   return final
 }, 100, {
   leading: true
