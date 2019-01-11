@@ -30,7 +30,7 @@ npm start
 2. Go to Chrome extensions page.
 3. Open developer mode
 4. Load `redtail-embeddable-ringcentral-phone/dist` as unpacked package.
-5. Go to `https://crm.*.redtail.com` to check
+5. Login to `redtailtechnology.com` to check
 
 ## Build with custom RingCentral clientID/appServer
 
