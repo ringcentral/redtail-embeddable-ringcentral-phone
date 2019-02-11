@@ -1,6 +1,6 @@
 # redtail embeddable ringcentral phone
 
-Add RingCentral Embeddable Voice widgets to RedtailCRM by chrome extension.
+Add RingCentral Embeddable Voice widgets to RedtailCRM by Chrome extension.
 
 Created with [ringcentral-embeddable-extension-factory](https://github.com/ringcentral/ringcentral-embeddable-extension-factory), you could create similar extension for other CRM sites.
 

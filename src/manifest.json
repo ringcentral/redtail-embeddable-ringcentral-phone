@@ -1,6 +1,6 @@
 {
   "name": "RedtailCRM embeddable ringcentral phone",
-  "description": "RingCentral Embeddable Voice with chrome extension for RedtailCRM",
+  "description": "RingCentral Embeddable Voice with Chrome extension for RedtailCRM",
   "version": "0.2.1",
   "permissions": [
     "http://*/",
