@@ -88,15 +88,12 @@ export function findMatchContacts(contacts = [], numbers) {
     } = contact
     return phoneNumbers.filter(n => {
       let f = formatPhone(n.phoneNumber)
-      console.log(f, 'sdfsd')
-      console.log(f, '"' + n.phoneNumber + '"', formatedNumbers, n.phoneNumber === formatedNumbers[0],'hh')
       return formatedNumbers
         .includes(
           f
         )
     }).length
   })
-  console.log(res, JSON.stringify(formatedNumbers), JSON.stringify(contacts), 'pp')
   return res.reduce((prev, it) => {
     let phone = _.find(it.phoneNumbers, n => {
       return formatedNumbers.includes(
@@ -275,7 +272,9 @@ export function hideContactInfoPanel() {
  */
 export async function showContactInfoPanel(call) {
   if (
+    !call ||
     !call.telephonyStatus ||
+    call.direction === 'Outbound' ||
     call.telephonyStatus === 'CallConnected'
   ) {
     return
