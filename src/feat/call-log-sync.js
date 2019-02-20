@@ -74,10 +74,10 @@ function notifySyncSuccess({
 }
 
 export async function syncCallLogToRedtail(body) {
-  let result = _.get(body, 'call.result')
-  if (result !== 'Call connected') {
-    return
-  }
+  // let result = _.get(body, 'call.result')
+  // if (result !== 'Call connected') {
+  //   return
+  // }
   let isManuallySync = !body.triggerType
   let isAutoSync = body.triggerType === 'callLogSync'
   if (!isAutoSync && !isManuallySync) {
@@ -108,10 +108,10 @@ async function doSync(body, formData) {
   let details = `${formData.title || ''}:Call from ${fromNumber} to ${toNumber}, duration: ${duration} seconds.`
   let start = moment(body.call.startTime)
   let end = moment(body.call.startTime + duration * 1000)
-  let sd = start.format('DD/MM/YYYY')
-  let st = start.format('H:ma')
-  let ed = end.format('DD/MM/YYYY')
-  let et = end.format('H:ma')
+  let sd = start.format('MM/DD/YYYY')
+  let st = start.format('h:ma')
+  let ed = end.format('MM/DD/YYYY')
+  let et = end.format('h:ma')
 
   let data = {
     utf8: '✓',
@@ -120,10 +120,10 @@ async function doSync(body, formData) {
     'crm_activity[subject]': (formData.title || 'Autosync:') + details,
     'crm_activity[all_day]': 0,
     'crm_activity[start_date]': sd,
-    'crm_activity[start_time]': '1:15pm',
+    'crm_activity[start_time]': st,
     'crm_activity[end_date]': ed,
-    'crm_activity[end_time]': '1:30pm',
-    'crm_activity[description]': details,
+    'crm_activity[end_time]': et,
+    'crm_activity[description]': '',
     'crm_activity[activity_code_id]': 3,
     'crm_activity[percentdone]': 0,
     'crm_activity[repeats]': 'never',
@@ -138,7 +138,7 @@ async function doSync(body, formData) {
   let url = `${host}/activities`
   let res = await fetch.post(url, {}, {
     headers: {
-      Accept: '*/*;q=0.5, text/javascript, application/javascript',
+      Accept: '*/*;q=0.5, text/javascript, application/javascript, application/ecmascript, application/x-ecmascript',
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
       'X-CSRF-Token': getCSRF(),
       'X-NewRelic-ID': getXid(),

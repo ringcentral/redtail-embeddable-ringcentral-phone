@@ -24,9 +24,9 @@ import {
   renderAuthButton,
   lsKeys
 } from './feat/auth.js'
-// import {
-//   syncCallLogToRedtail
-// } from './feat/call-log-sync.js'
+import {
+  syncCallLogToRedtail
+} from './feat/call-log-sync'
 import {
   findMatchContacts,
   searchContacts,
@@ -112,9 +112,9 @@ export function thirdPartyServiceConfig(serviceName) {
     unauthorizedTitle: 'Authorize',
     authorized: false,
 
-    // Enable call log sync feature
-    // callLoggerPath: '/callLogger',
-    // callLoggerTitle: `Log to ${serviceName}`,
+    //Enable call log sync feature
+    callLoggerPath: '/callLogger',
+    callLoggerTitle: `Log to ${serviceName}`,
 
     // show contact activities in ringcentral widgets
     activitiesPath: '/activities',
@@ -204,16 +204,16 @@ export function thirdPartyServiceConfig(serviceName) {
         }
       }, '*')
     }
-    // else if (path === '/callLogger') {
-    //   // add your codes here to log call to your service
-    //   syncCallLogToRedtail(data.body)
-    //   // response to widget
-    //   window.rc.postMessage({
-    //     type: 'rc-post-message-response',
-    //     responseId: data.requestId,
-    //     response: { data: 'ok' }
-    //   }, '*')
-    // }
+    else if (path === '/callLogger') {
+      // add your codes here to log call to your service
+      syncCallLogToRedtail(data.body)
+      // response to widget
+      window.rc.postMessage({
+        type: 'rc-post-message-response',
+        responseId: data.requestId,
+        response: { data: 'ok' }
+      }, '*')
+    }
     else if (path === '/activities') {
       const activities = await getActivities(data.body)
       window.rc.postMessage({
