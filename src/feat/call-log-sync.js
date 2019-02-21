@@ -10,10 +10,12 @@ import extLinkSvg from 'ringcentral-embeddable-extension-common/src/common/link-
 import {
   showAuthBtn
 } from './auth'
+import {getContacts} from './contacts'
 import _ from 'lodash'
 import {
   getXid,
-  getCSRF
+  getCSRF,
+  formatPhone
 } from './common'
 import {
   notify,
@@ -38,16 +40,35 @@ function buildFormData(data) {
 }
 
 async function getContact(body) {
-  if (body.call) {
-    let obj = _.find(
-      [
-        ...body.call.toMatches,
-        ...body.call.fromMatches
-      ],
-      m => m.type === serviceName
-    )
-    return obj ? obj : {}
+  let obj = _.find(
+    [
+      ..._.get(body, 'call.toMatches') || [],
+      ..._.get(body, 'call.fromMatches') || []
+    ],
+    m => m.type === serviceName
+  )
+  if (obj) {
+    return obj
   }
+
+  let nf = _.get(body, 'to.phoneNumber') || _.get(body.call, 'to.phoneNumber')
+  let nt = _.get(body, 'from.phoneNumber') || _.get(body.call, 'from.phoneNumber')
+  nf = formatPhone(nf)
+  nt = formatPhone(nt)
+  let contacts = await getContacts()
+  let res = _.find(
+    contacts,
+    contact => {
+      let {
+        phoneNumbers
+      } = contact
+      return _.find(phoneNumbers, nx => {
+        let t = formatPhone(nx.phoneNumber)
+        return nf === t || nt === t
+      })
+    }
+  )
+  return res
 }
 
 function notifySyncSuccess({
