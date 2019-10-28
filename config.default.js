@@ -2,28 +2,26 @@ const os = require('os')
 const extend = require('recursive-assign')
 let config = {
 
-  //dev related
+  // dev related
   devCPUCount: os.cpus().length,
   devPort: 8020,
 
-  //build options
+  // build options
   minimize: false,
 
-  //congfigs to build app
+  // congfigs to build app
 
-  //ringcentral config
+  // ringcentral config
   ringCentralConfigs: {
-    appKey: '',
-    appServer: ''
+    clientID: '',
+    clientSecret: '',
+    appServer: 'https://platform.ringcentral.com'
   },
 
-  //for third party related
+  // for third party related
   thirdPartyConfigs: {
-    // appKey: ,
-    // appSecret: ,
-    // appRedirect: 'https://zxdong262.github.io/hubspot-embeddable-ringcentral-phone/app/redirect.html',
-    // appServer: ,
-    // apiServer:
+    serviceName: 'RedtailCRM',
+    showCallLogSyncForm: true
   }
 
 }
@@ -38,6 +36,3 @@ try {
   }
 }
 module.exports = config
-
-
-
