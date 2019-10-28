@@ -6,8 +6,8 @@
 module.exports = {
 
   // dev related
-  devCPUCount: os.cpus().length,
-  devPort: 8020,
+  // devCPUCount: os.cpus().length,
+  // devPort: 8020,
 
   // build options
   minimize: false,
