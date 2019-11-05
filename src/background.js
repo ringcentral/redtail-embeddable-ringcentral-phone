@@ -7,7 +7,7 @@ import { thirdPartyConfigs } from 'ringcentral-embeddable-extension-common/src/c
 function checkTab (tab) {
   return tab &&
     tab.url &&
-    tab.url.includes('redtailtechnology.com')
+    /^https:\/\/.+\.redtailtechnology.com/.test(tab.url)
 }
 let list = []
 if (thirdPartyConfigs.upgradeServer) {
