@@ -148,6 +148,13 @@ export function thirdPartyServiceConfig (serviceName) {
       showContactInfoPanel(call)
     } else if (type === 'rc-call-end-notify') {
       hideContactInfoPanel()
+    } else if (type === 'rc-region-settings-notify') {
+      const prevCountryCode = window.rc.countryCode || 'US'
+      const newCountryCode = data.countryCode
+      if (prevCountryCode !== newCountryCode) {
+        getContacts(true)
+      }
+      window.rc.countryCode = data.countryCode
     }
     if (type !== 'rc-post-message-request') {
       return
