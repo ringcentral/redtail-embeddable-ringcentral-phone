@@ -6,8 +6,7 @@ import _ from 'lodash'
 import fetch from 'ringcentral-embeddable-extension-common/src/common/fetch'
 import { setCache, getCache } from 'ringcentral-embeddable-extension-common/src/common/cache'
 import {
-  showAuthBtn,
-  notifyRCAuthed
+  showAuthBtn
 } from './auth'
 import {
   popup,
@@ -22,7 +21,11 @@ import {
   getContactInfo
 } from './common'
 import $ from 'jquery'
-
+import {
+  remove,
+  insert,
+  getByPage
+} from 'ringcentral-embeddable-extension-common/src/common/db'
 import { thirdPartyConfigs } from 'ringcentral-embeddable-extension-common/src/common/app-config'
 // import add from './temp-add-conacts'
 
@@ -30,8 +33,20 @@ import { thirdPartyConfigs } from 'ringcentral-embeddable-extension-common/src/c
 let {
   serviceName
 } = thirdPartyConfigs
-let isFetchingContacts = false
-let syncHanlder = null
+let isFetchingAllContacts = false
+// let syncHanlder = null
+const lastSyncPage = 'last-sync-page'
+let upsert = true
+const final = {
+  result: [],
+  hasMore: false
+}
+
+function notifyReSyncContacts () {
+  window.rc.postMessage({
+    type: 'rc-adapter-sync-third-party-contacts'
+  })
+}
 
 function hideSyncTip () {
   document
@@ -39,15 +54,15 @@ function hideSyncTip () {
     .classList.add('rc-hide-to-side')
 }
 
-const showSyncTip = _.debounce(function () {
-  document
-    .querySelector('.rc-sync-contact-button-wrap')
-    .classList.remove('rc-hide-to-side')
-  clearTimeout(syncHanlder)
-  syncHanlder = setTimeout(hideSyncTip, 15000)
-}, 10000, {
-  leading: true
-})
+// const showSyncTip = _.debounce(function () {
+//   document
+//     .querySelector('.rc-sync-contact-button-wrap')
+//     .classList.remove('rc-hide-to-side')
+//   clearTimeout(syncHanlder)
+//   syncHanlder = setTimeout(hideSyncTip, 15000)
+// }, 10000, {
+//   leading: true
+// })
 
 /**
  * click contact info panel event handler
@@ -69,74 +84,7 @@ function onloadIframe () {
   dom && dom.classList.add('rc-contact-panel-loaded')
 }
 
-/**
- * search contacts by number match
- * @param {array} contacts
- * @param {string} keyword
- */
-export function findMatchContacts (contacts = [], numbers) {
-  let { formatedNumbers, formatNumbersMap } = numbers.reduce((prev, n) => {
-    let nn = formatPhone(n)
-    prev.formatedNumbers.push(nn)
-    prev.formatNumbersMap[nn] = n
-    return prev
-  }, {
-    formatedNumbers: [],
-    formatNumbersMap: {}
-  })
-  let res = contacts.filter(contact => {
-    let {
-      phoneNumbers
-    } = contact
-    return phoneNumbers.filter(n => {
-      let f = formatPhone(n.phoneNumber)
-      return formatedNumbers
-        .includes(
-          f
-        )
-    }).length
-  })
-  return res.reduce((prev, it) => {
-    let phone = _.find(it.phoneNumbers, n => {
-      return formatedNumbers.includes(
-        formatPhone(n.phoneNumber)
-      )
-    })
-    let num = phone.phoneNumber
-    let key = formatNumbersMap[formatPhone(num)]
-    if (!prev[key]) {
-      prev[key] = []
-    }
-    let res = {
-      id: it.id, // id to identify third party contact
-      type: serviceName, // need to same as service name
-      name: it.name,
-      phoneNumbers: it.phoneNumbers
-    }
-    prev[key].push(res)
-    return prev
-  }, {})
-}
-
-/**
- * search contacts by keyword
- * @param {array} contacts
- * @param {string} keyword
- */
-export function searchContacts (contacts = [], keyword) {
-  return contacts.filter(contact => {
-    let {
-      name,
-      phoneNumbers
-    } = contact
-    return name.includes(keyword) ||
-      _.find(phoneNumbers, n => {
-        return n.phoneNumber.includes(keyword)
-      })
-  })
-}
-
-async function getContactDetail (id) {
+async function getContactDetail (id, name, page) {
   let html = await getContactInfo({
     vid: id
   })
@@ -148,6 +96,8 @@ async function getContactDetail (id) {
   let re = $(html)
   let trs = re.find('.contact-phones tr, .contact-emails tr')
   let res = {
+    id,
+    name,
     type: serviceName,
     phoneNumbers: [],
     emails: []
@@ -174,13 +124,16 @@ async function getContactDetail (id) {
       }
     }
   })
-  return res
+  res.phoneNumbersForSearch = res.phoneNumbers.map(
+    d => formatPhone(d.phoneNumber)
+  ).join(',')
+  await insert(res, upsert)
 }
 
 /**
  * getContactsDetails
  */
-async function getContactsDetails (html) {
+async function getContactsDetails (html, page) {
   let re = $(html)
   let list = []
   re.find('#contact-list tr').each(function () {
@@ -194,22 +147,17 @@ async function getContactsDetails (html) {
       id
     })
   })
-  let final = []
   for (let item of list) {
     let { id } = item
-    let info = await getContactDetail(id)
-    final.push({
-      ...item,
-      ...info
-    })
+    await getContactDetail(id, item.name, page).catch(console.log)
   }
-  return final
 }
 
 /**
  * get contact lists pager
  */
 async function getContact (page = 1) {
+  await setCache(lastSyncPage, page, 'never')
   let url = `${host}/contacts`
   if (page) {
     url = `${url}?page=${page}`
@@ -227,37 +175,10 @@ async function getContact (page = 1) {
     )
     return []
   }
-  let final = await getContactsDetails(res)
-  return final
+  await getContactsDetails(res, page)
 }
 
-/**
- * get contact lists
- */
-export const getContacts = _.debounce(async function (forceUpdate) {
-  if (!window.rc.local.apiKey) {
-    showAuthBtn()
-    return []
-  }
-  let cached = forceUpdate
-    ? false
-    : await getCache(window.rc.cacheKey)
-  if (cached) {
-    console.log('use cache')
-    if (!isFetchingContacts) {
-      showSyncTip()
-    }
-    return cached
-  }
-  if (isFetchingContacts) {
-    return []
-  }
-  notify(
-    'Fetching contacts list, may take minutes, please stay in this page until it is done.',
-    'info',
-    1000 * 60 * 60
-  )
-  isFetchingContacts = true
+function getPages () {
   let pages = Array.from(
     document.querySelectorAll('ul.pagination li a[href]')
   )
@@ -267,32 +188,76 @@ export const getContacts = _.debounce(async function (forceUpdate) {
   if (!pages.length) {
     pages = [1]
   }
-  console.log(pages, 'pages')
-  let final = []
-  for (let i of pages) {
-    let res = await getContact(i)
-    final = [
-      ...final,
-      ...res
-    ]
-    console.log(i, final.length, 'tada')
-    await setCache(window.rc.cacheKey, final, 'never')
-    notifyRCAuthed(false)
-    notifyRCAuthed(true)
-  }
-  isFetchingContacts = false
-  await setCache(window.rc.cacheKey, final, 'never')
+  return pages
+}
+
+function loadingContacts () {
   notify(
-    'Fetching contacts list done',
-    'success'
+    'Fetching contacts list, may take minutes, please stay in this page until it is done.',
+    'info',
+    1000 * 60 * 60
   )
-  popup()
-  notifyRCAuthed(false)
-  notifyRCAuthed(true)
+}
+
+function stopLoadingContacts () {
+  notify('Contacts data synced', 2000)
+}
+
+/**
+ * get contact lists
+ */
+export const getContacts = async function (
+  page = 1
+) {
+  console.log('getContacts')
+  if (!window.rc.local.apiKey) {
+    showAuthBtn()
+    return final
+  }
+  let cached = await getByPage(page).catch(e => console.log(e.stack))
+  if (cached && cached.result && cached.result.length) {
+    console.debug('use cache')
+    return cached
+  }
+  fetchAllContacts()
   return final
-}, 100, {
-  leading: true
-})
+}
+
+export async function fetchAllContacts () {
+  console.log('fetchAllContacts')
+  if (!window.rc.local.apiKey) {
+    showAuthBtn()
+    return final
+  }
+  if (isFetchingAllContacts) {
+    return
+  }
+  isFetchingAllContacts = true
+  loadingContacts()
+  const page = await getCache(lastSyncPage)
+  const pages = getPages()
+  console.log('last fetching page:', page)
+  console.log('pages:', pages)
+  const len = pages.length
+  const lastPage = pages[len - 1]
+  let start = 1
+  if (page && page <= lastPage) {
+    start = page
+    upsert = true
+  } else {
+    await remove()
+    upsert = false
+  }
+  for (;start <= lastPage; start++) {
+    console.log('fetching page:', start)
+    await getContact(start)
+  }
+  stopLoadingContacts()
+  isFetchingAllContacts = false
+  notifyReSyncContacts()
+  await setCache(lastSyncPage, 0, 'never')
+  notify('Syncing contacts done', 'info', 3000)
+}
 
 export function hideContactInfoPanel () {
   let dom = document
@@ -375,7 +340,7 @@ function onClickSyncPanel (e) {
   let { target } = e
   let { classList } = target
   if (target.classList.contains('rc-do-sync-contact')) {
-    getContacts(true)
+    fetchAllContacts()
     hideSyncTip()
   } else if (classList.contains('rc-no-sync-contact')) {
     hideSyncTip()

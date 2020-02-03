@@ -10,7 +10,6 @@ import extLinkSvg from 'ringcentral-embeddable-extension-common/src/common/link-
 import {
   showAuthBtn
 } from './auth'
-import { getContacts } from './contacts'
 import _ from 'lodash'
 import {
   getXid,
@@ -21,6 +20,9 @@ import {
   host,
   formatPhone
 } from 'ringcentral-embeddable-extension-common/src/common/helpers'
+import {
+  match
+} from 'ringcentral-embeddable-extension-common/src/common/db'
 
 let {
   showCallLogSyncForm,
@@ -50,25 +52,28 @@ async function getSyncContacts (body) {
   if (objs.length) {
     return objs
   }
-
-  let nf = _.get(body, 'to.phoneNumber') || _.get(body.call, 'to.phoneNumber')
-  let nt = _.get(body, 'from.phoneNumber') || _.get(body.call, 'from.phoneNumber')
-  nf = formatPhone(nf)
-  nt = formatPhone(nt)
-  let contacts = await getContacts()
-  let res = _.filter(
-    contacts,
-    contact => {
-      let {
-        phoneNumbers
-      } = contact
-      return _.find(phoneNumbers, nx => {
-        let t = formatPhone(nx.phoneNumber)
-        return nf === t || nt === t
-      })
-    }
-  )
-  return res
+  let all = []
+  if (body.call) {
+    let nf = _.get(body, 'to.phoneNumber') ||
+      _.get(body, 'call.to.phoneNumber')
+    let nt = _.get(body, 'from.phoneNumber') ||
+      _.get(body.call, 'from.phoneNumber')
+    all = [nt, nf]
+  } else {
+    all = [
+      _.get(body, 'conversation.self.phoneNumber'),
+      ...body.conversation.correspondents.map(d => d.phoneNumber)
+    ]
+  }
+  all = all.map(s => formatPhone(s))
+  let contacts = await match(all)
+  let arr = Object.keys(contacts).reduce((p, k) => {
+    return [
+      ...p,
+      ...contacts[k]
+    ]
+  }, [])
+  return _.uniqBy(arr, d => d.id)
 }
 
 function notifySyncSuccess ({

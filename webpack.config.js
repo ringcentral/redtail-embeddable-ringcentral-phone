@@ -20,6 +20,14 @@ const to1 = path.resolve(
   __dirname,
   'dist/icons'
 )
+const f3 = path.resolve(
+  __dirname,
+  'node_modules/jsstore/dist/jsstore.worker.min.js'
+)
+const to4 = path.resolve(
+  __dirname,
+  'dist'
+)
 const opts = {
   extensions: ['.map', '.js'],
   minBytes: 3900
@@ -158,6 +166,10 @@ var config = {
     new CopyWebpackPlugin([{
       from,
       to: to1,
+      force: true
+    }, {
+      from: f3,
+      to: to4,
       force: true
     }], {}),
     new ExtraneousFileCleanupPlugin(opts),

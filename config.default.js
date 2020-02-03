@@ -21,7 +21,8 @@ let config = {
   // for third party related
   thirdPartyConfigs: {
     serviceName: 'RedtailCRM',
-    showCallLogSyncForm: true
+    showCallLogSyncForm: true,
+    pageSize: 10000
   }
 
 }

@@ -24,9 +24,8 @@ import {
   syncCallLogToRedtail
 } from './feat/call-log-sync'
 import {
-  findMatchContacts,
-  searchContacts,
   getContacts,
+  fetchAllContacts,
   hideContactInfoPanel,
   showContactInfoPanel,
   renderConfirmGetContactsButton
@@ -35,7 +34,15 @@ import * as ls from 'ringcentral-embeddable-extension-common/src/common/ls'
 import {
   getNumbers
 } from './feat/common'
-// import { createAll } from './feat/add-contacts'
+import {
+  search,
+  match
+} from 'ringcentral-embeddable-extension-common/src/common/db'
+import { thirdPartyConfigs } from 'ringcentral-embeddable-extension-common/src/common/app-config'
+
+let {
+  pageSize
+} = thirdPartyConfigs
 
 // createAll()
 setTimeout(upgrade, 999)
@@ -125,9 +132,7 @@ export function thirdPartyServiceConfig (serviceName) {
   // read our document about third party features https://github.com/ringcentral/ringcentral-embeddable/blob/master/docs/third-party-service-in-widget.md
   let handleRCEvents = async e => {
     let { data } = e
-    console.debug('======data======')
-    console.debug(data, data.type, data.path)
-    console.debug('======data======')
+    console.debug(data)
     if (!data) {
       return
     }
@@ -142,8 +147,7 @@ export function thirdPartyServiceConfig (serviceName) {
     ) {
       showAuthBtn()
     } else if (
-      type === 'rc-active-call-notify' ||
-      type === 'rc-call-start-notify'
+      type === 'rc-active-call-notify'
     ) {
       showContactInfoPanel(call)
     } else if (type === 'rc-call-end-notify') {
@@ -154,7 +158,7 @@ export function thirdPartyServiceConfig (serviceName) {
       const newCountryCode = data.countryCode
       console.log('new country code:', newCountryCode)
       if (prevCountryCode !== newCountryCode) {
-        getContacts(true)
+        fetchAllContacts()
       }
       window.rc.countryCode = newCountryCode
       ls.set('rc-country-code', newCountryCode)
@@ -177,22 +181,37 @@ export function thirdPartyServiceConfig (serviceName) {
     } else if (path === '/contacts') {
       let isMannulSync = _.get(data, 'body.type') === 'manual'
       if (isMannulSync) {
-        return getContacts(true)
+        fetchAllContacts()
+        window.rc.postMessage({
+          type: 'rc-post-message-response',
+          responseId: data.requestId,
+          response: {
+            data: []
+          }
+        })
+        return
       }
-      let contacts = await getContacts()
+      let page = _.get(data, 'body.page') || 1
+      let contacts = await getContacts(page)
+      let nextPage = ((contacts.count || 0) - page * pageSize > 0) || contacts.hasMore
+        ? page + 1
+        : null
       window.rc.postMessage({
         type: 'rc-post-message-response',
         responseId: data.requestId,
         response: {
-          data: contacts,
-          nextPage: null
+          data: contacts.result,
+          nextPage
         }
-      }, '*')
+      })
     } else if (path === '/contacts/search') {
-      let contacts = await getContacts()
+      if (!window.rc.local.apiKey) {
+        return showAuthBtn()
+      }
+      let contacts = []
       let keyword = _.get(data, 'body.searchString')
       if (keyword) {
-        contacts = searchContacts(contacts, keyword)
+        contacts = await search(keyword)
       }
       window.rc.postMessage({
         type: 'rc-post-message-response',
@@ -200,18 +219,20 @@ export function thirdPartyServiceConfig (serviceName) {
         response: {
           data: contacts
         }
-      }, '*')
+      })
     } else if (path === '/contacts/match') {
-      let contacts = await getContacts()
+      if (!window.rc.local.apiKey) {
+        return showAuthBtn()
+      }
       let phoneNumbers = _.get(data, 'body.phoneNumbers') || []
-      let res = findMatchContacts(contacts, phoneNumbers)
+      let res = await match(phoneNumbers)
       window.rc.postMessage({
         type: 'rc-post-message-response',
         responseId: data.requestId,
         response: {
           data: res
         }
-      }, '*')
+      })
     } else if (path === '/callLogger') {
       // add your codes here to log call to your service
       syncCallLogToRedtail(data.body)
