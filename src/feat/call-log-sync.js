@@ -4,7 +4,7 @@
 
 import { thirdPartyConfigs } from 'ringcentral-embeddable-extension-common/src/common/app-config'
 import fetch from 'ringcentral-embeddable-extension-common/src/common/fetch'
-import { createForm } from './call-log-sync-form'
+import { createForm, getContactInfo } from './call-log-sync-form'
 import moment from 'moment'
 import extLinkSvg from 'ringcentral-embeddable-extension-common/src/common/link-external.svg'
 import {
@@ -42,16 +42,6 @@ function buildFormData (data) {
 }
 
 async function getSyncContacts (body) {
-  let objs = _.filter(
-    [
-      ..._.get(body, 'call.toMatches') || [],
-      ..._.get(body, 'call.fromMatches') || []
-    ],
-    m => m.type === serviceName
-  )
-  if (objs.length) {
-    return objs
-  }
   let all = []
   if (body.call) {
     let nf = _.get(body, 'to.phoneNumber') ||
@@ -104,8 +94,8 @@ export async function syncCallLogToRedtail (body) {
   // if (result !== 'Call connected') {
   //   return
   // }
-  let isManuallySync = !body.triggerType
-  let isAutoSync = body.triggerType === 'callLogSync'
+  let isManuallySync = !body.triggerType || body.triggerType === 'manual'
+  let isAutoSync = body.triggerType === 'callLogSync' || body.triggerType === 'auto'
   if (!isAutoSync && !isManuallySync) {
     return
   }
@@ -113,8 +103,15 @@ export async function syncCallLogToRedtail (body) {
     return isManuallySync ? showAuthBtn() : null
   }
   if (showCallLogSyncForm && isManuallySync) {
+    let contactRelated = await getContactInfo(body, serviceName)
+    if (
+      !contactRelated ||
+      (!contactRelated.froms && !contactRelated.tos)
+    ) {
+      return notify('No related contact')
+    }
     return createForm(
-      body.call,
+      body,
       serviceName,
       (formData) => doSync(body, formData)
     )
@@ -174,8 +171,10 @@ async function doSyncOne (contact, body, formData) {
     'crm_activity[percentdone]': 0,
     'crm_activity[repeats]': 'never',
     'crm_activity[category_id]': 2,
-    'crm_activity[attendees_attributes][0][type]': 'Crm::Activity::Attendee::User',
-    'crm_activity[attendees_attributes][0][user_id]': window.rc.currentUserId,
+    // 'crm_activity[attendees][]': '',
+    'crm_activity[attendees][]': window.rc.currentUserId,
+    // 'crm_activity[attendees_attributes][0][type]': 'Crm::Activity::Attendee::User',
+    // 'crm_activity[attendees_attributes][0][user_id]': window.rc.currentUserId,
     'crm_activity[importance]': 2,
     'crm_activity[priority]': '',
     commit: 'Create Activity'

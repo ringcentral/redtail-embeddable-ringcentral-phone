@@ -3,7 +3,8 @@ import $ from 'jquery'
 import _ from 'lodash'
 import {
   host,
-  checkPhoneNumber
+  checkPhoneNumber,
+  formatPhone
 } from 'ringcentral-embeddable-extension-common/src/common/helpers'
 
 export const APIKEYLS = 'rcapikey'
@@ -82,4 +83,8 @@ export function getUserId () {
   let arr = document.body.innerHTML.match(reg) || []
   let id = arr[1]
   return id || ''
+}
+
+export function formatPhoneLocal (number) {
+  return formatPhone(number, undefined, 'formatNational')
 }
