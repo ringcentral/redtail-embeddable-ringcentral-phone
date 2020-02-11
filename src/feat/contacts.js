@@ -178,18 +178,6 @@ async function getContact (page = 1) {
   await getContactsDetails(res, page)
 }
 
-async function getPageDom () {
-  let url = `${host}/contacts`
-  let res = await fetch.get(url, {
-    headers: {
-      Accept: 'text/html'
-    }
-  })
-  if (!res) {
-    return ''
-  }
-}
-
 async function getPages () {
   let url = `${host}/contacts`
   let res = await fetch.get(url, {
