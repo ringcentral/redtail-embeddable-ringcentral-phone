@@ -178,10 +178,29 @@ async function getContact (page = 1) {
   await getContactsDetails(res, page)
 }
 
-function getPages () {
-  let pages = Array.from(
-    document.querySelectorAll('ul.pagination li a[href]')
-  )
+async function getPageDom () {
+  let url = `${host}/contacts`
+  let res = await fetch.get(url, {
+    headers: {
+      Accept: 'text/html'
+    }
+  })
+  if (!res) {
+    return ''
+  }
+}
+
+async function getPages () {
+  let url = `${host}/contacts`
+  let res = await fetch.get(url, {
+    headers: {
+      Accept: 'text/html'
+    }
+  })
+  if (!res) {
+    return [1]
+  }
+  let pages = Array.from($(res).find('ul.pagination li a[href]'))
     .map(d => d.getAttribute('href'))
     .filter(d => d.includes('page='))
   pages = _.uniq(pages).map((d, i) => i + 1)
@@ -235,7 +254,7 @@ export async function fetchAllContacts () {
   isFetchingAllContacts = true
   loadingContacts()
   const page = await getCache(lastSyncPage)
-  const pages = getPages()
+  const pages = await getPages()
   console.log('last fetching page:', page)
   console.log('pages:', pages)
   const len = pages.length
