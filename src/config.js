@@ -108,6 +108,7 @@ export function thirdPartyServiceConfig (serviceName) {
     name: serviceName,
     // show contacts in ringcentral widgets
     contactsPath: '/contacts',
+    contactIcon: 'https://github.com/ringcentral/redtail-embeddable-ringcentral-phone/blob/master/src/redtail.png?raw=true',
     contactSearchPath: '/contacts/search',
     contactMatchPath: '/contacts/match',
 
