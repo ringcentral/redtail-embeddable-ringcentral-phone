@@ -79,7 +79,6 @@ var config = {
     chunkFilename: '[name].[hash].js',
     libraryTarget: 'var'
   },
-  watch: true,
   resolve: {
     extensions: ['.js', '.json']
   },
