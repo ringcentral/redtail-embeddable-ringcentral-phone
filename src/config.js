@@ -92,7 +92,7 @@ export const phoneNumberSelectors = [
     shouldAct: (href) => {
       return /\/contacts\/\d+/.test(href)
     },
-    selector: 'tbody.contact-phones .number div'
+    selector: 'tbody.contact-phones .number'
   }
   //* /
 ]
