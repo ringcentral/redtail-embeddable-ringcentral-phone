@@ -5,9 +5,9 @@ no_breadcrumb:true
 Developers are free to customize their RingCentral integration with Redtail CRM by forking the project on github:
 
 ```bash
-$ git clone https://github.com/ringcentral/redtail-embeddable-ringcentral-phone.git
-$ cd redtail-embeddable-ringcentral-phone
-$ npm i
+git clone https://github.com/ringcentral/redtail-embeddable-ringcentral-phone.git
+cd redtail-embeddable-ringcentral-phone
+npm i
 ```
 
 ## Create Your App
@@ -21,7 +21,7 @@ On RingCentral you will need to create an application with your developer consol
 You will need to create your config file using the template provided:
 
 ```bash
-$ cp config.sample.js config.js
+cp config.sample.js config.js
 ```
 
 Look for the following section, and enter in your RingCentral Client ID, and set the server to the proper environment:
@@ -39,10 +39,10 @@ ringCentralConfigs: {
 
 ## Start Up
 
-You are ready to start up your app. 
+You are ready to start up your app.
 
 ```bash
-$ npm start
+npm start
 ```
 
 ## Customize Your Integration
@@ -60,4 +60,3 @@ To customize your integration, edit the many `.js` files in the `src` directory.
 3. Click "Load unpacked."
 
 4. Select the `redtail-embeddable-ringcentral-phone/dist` folder, and click "Select."
-
