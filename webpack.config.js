@@ -48,16 +48,18 @@ if (clientID || appServer) {
 }
 
 const { version } = pack
-
+const appUrl = 'https://apps.ringcentral.com/integration/ringcentral-embeddable-preview/app.html'
 const pug = {
   loader: 'pug-html-loader',
   options: {
     data: {
       version,
       appConfigQuery,
+      appUrl,
       _global: {
         version,
-        appConfigQuery
+        appConfigQuery,
+        appUrl
       }
     }
   }
