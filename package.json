@@ -9,6 +9,10 @@
     "postinstall": "node bin/post-install",
     "lint": "./node_modules/.bin/standard",
     "fix": "./node_modules/.bin/standard --fix",
+    "docs": "mkdocs serve",
+    "docs-b": "mkdocs build",
+    "docs-p": "mkdocs gh-deploy",
+    "deploy": "npm run docs-b && npm run docs-p",
     "pack": "rm -rf dist && cross-env NODE_ENV=production ./node_modules/.bin/webpack && node bin/pack"
   },
   "keywords": [
