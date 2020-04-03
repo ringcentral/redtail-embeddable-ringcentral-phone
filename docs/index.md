@@ -12,6 +12,6 @@ The RingCentral for Redtail CRM plugin for Chrome enhances Redtail with the foll
 
 ## See it in action
 
-<iframe src="https://www.youtube.com/embed/m5p6R1BOd4Y?modestbranding=1&rel=0&theme=light" width="630" height="360" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe src="https://www.youtube.com/embed/Y8PEkcVsZSg?modestbranding=1&rel=0&theme=light" width="630" height="360" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 <a class="btn btn-primary" href="install/">Install Now &raquo;</a>
