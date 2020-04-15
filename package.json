@@ -1,6 +1,6 @@
 {
   "name": "redtail-embeddable-ringcentral-phone",
-  "version": "1.5.1",
+  "version": "2.0.0",
   "description": "RingCentral Embeddable Voice with Chrome extension for RedtailCRM",
   "main": "index.js",
   "scripts": {
@@ -13,7 +13,8 @@
     "docs-b": "mkdocs build",
     "docs-p": "mkdocs gh-deploy",
     "deploy": "npm run docs-b && npm run docs-p",
-    "pack": "rm -rf dist && cross-env NODE_ENV=production ./node_modules/.bin/webpack && node bin/pack"
+    "down": "node bin/download-adapter.js",
+    "pack": "rm -rf dist && cross-env NODE_ENV=production ./node_modules/.bin/webpack && node bin/pack && npm run down"
   },
   "keywords": [
     "RingCentral",
@@ -22,6 +23,7 @@
   ],
   "author": "Drake Zhao <drake.zhao@ringcentral.com>",
   "devDependencies": {
+    "@ant-design/icons": "^4.0.6",
     "@babel/cli": "7.4.3",
     "@babel/core": "^7.4.5",
     "@babel/plugin-proposal-class-properties": "7.4.0",
@@ -30,8 +32,10 @@
     "@babel/plugin-syntax-dynamic-import": "7.2.0",
     "@babel/plugin-transform-runtime": "7.4.3",
     "@babel/preset-env": "^7.4.5",
+    "@babel/preset-react": "^7.9.4",
     "@babel/register": "7.4.0",
     "@babel/runtime": "7.4.3",
+    "antd": "^4.1.3",
     "babel-eslint": "10.0.1",
     "babel-loader": "8.0.5",
     "babel-plugin-import": "1.10.0",
@@ -46,11 +50,16 @@
     "happypack": "5.0.0",
     "html-loader": "0.5.5",
     "jquery": "^3.4.1",
+    "less": "^3.11.1",
+    "less-loader": "^5.0.0",
     "lodash-webpack-plugin": "0.11.5",
     "moment": "2.23.0",
     "npm-run-all": "4.1.3",
     "pug-html-loader": "1.1.5",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
     "recursive-assign": "0.2.0",
+    "replace-in-file": "^5.0.2",
     "ringcentral-embeddable-extension-common": "0.8.7",
     "shelljs": "0.8.2",
     "standard": "^12.0.1",
@@ -64,7 +73,10 @@
     "webpack-extraneous-file-cleanup-plugin": "2.0.0"
   },
   "standard": {
-    "parser": "babel-eslint"
+    "parser": "babel-eslint",
+    "globals": [
+      "chrome"
+    ]
   },
   "dependencies": {},
   "bin": {

@@ -14,6 +14,7 @@ import {
 } from './feat/activities.js'
 import {
   showAuthBtn,
+  doAuth,
   notifyRCAuthed,
   unAuth,
   renderAuthButton,
@@ -26,9 +27,7 @@ import {
 import {
   getContacts,
   fetchAllContacts,
-  hideContactInfoPanel,
-  showContactInfoPanel,
-  renderConfirmGetContactsButton
+  showContactInfoPanel
 } from './feat/contacts.js'
 import * as ls from 'ringcentral-embeddable-extension-common/src/common/ls'
 import {
@@ -139,7 +138,8 @@ export function thirdPartyServiceConfig (serviceName) {
     }
     let { type, loggedIn, path, call } = data
     if (type === 'rc-login-status-notify') {
-      console.log(loggedIn, 'loggedIn')
+      console.debug('rc logined', loggedIn)
+      window.rc.rcLogined = loggedIn
     }
     if (
       type === 'rc-route-changed-notify' &&
@@ -151,8 +151,6 @@ export function thirdPartyServiceConfig (serviceName) {
       type === 'rc-active-call-notify'
     ) {
       showContactInfoPanel(call)
-    } else if (type === 'rc-call-end-notify') {
-      hideContactInfoPanel()
     } else if (type === 'rc-region-settings-notify') {
       const prevCountryCode = window.rc.countryCode || 'US'
       console.log('prev country code:', prevCountryCode)
@@ -172,7 +170,7 @@ export function thirdPartyServiceConfig (serviceName) {
       if (window.rc.local.apiKey) {
         unAuth()
       } else {
-        showAuthBtn()
+        doAuth()
       }
       window.rc.postMessage({
         type: 'rc-post-message-response',
@@ -242,14 +240,15 @@ export function thirdPartyServiceConfig (serviceName) {
         type: 'rc-post-message-response',
         responseId: data.requestId,
         response: { data: 'ok' }
-      }, '*')
+      })
     } else if (path === '/activities') {
       const activities = await getActivities(data.body)
+      console.log(activities, 'activities')
       window.rc.postMessage({
         type: 'rc-post-message-response',
         responseId: data.requestId,
         response: { data: activities }
-      }, '*')
+      })
     } else if (path === '/activity') {
       // response to widget
       showActivityDetail(data.body)
@@ -257,7 +256,7 @@ export function thirdPartyServiceConfig (serviceName) {
         type: 'rc-post-message-response',
         responseId: data.requestId,
         response: { data: 'ok' }
-      }, '*')
+      })
     }
   }
   return {
@@ -279,12 +278,7 @@ export async function initThirdParty () {
   }
   // get the html ready
   renderAuthButton()
-  renderConfirmGetContactsButton()
   if (window.rc.local.apiKey) {
     notifyRCAuthed()
   }
 }
-
-// init call with ringcenntral button at page bottom
-// enbaled by default, change to false to disable it
-export const initCallButton = true
