@@ -36,3 +36,5 @@ docs/esdoc
 yarn.lock
 *.zip
 /site/
+*.txt
+*.pem

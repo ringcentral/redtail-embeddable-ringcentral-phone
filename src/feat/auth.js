@@ -7,7 +7,7 @@ import logo from 'ringcentral-embeddable-extension-common/src/common/rc-logo'
 import {
   createElementFromHTML,
   findParentBySel,
-  sendMsgToBackground
+  sendMsgToRCIframe
 } from 'ringcentral-embeddable-extension-common/src/common/helpers'
 import * as ls from 'ringcentral-embeddable-extension-common/src/common/ls'
 import {
@@ -27,12 +27,7 @@ window.rc = {
   local: {
     apiKey: null
   },
-  postMessage: data => {
-    sendMsgToBackground({
-      to: 'standalone',
-      data
-    })
-  },
+  postMessage: sendMsgToRCIframe,
   currentUserId,
   cacheKey: 'contacts' + '_' + currentUserId
 }
@@ -63,7 +58,7 @@ function handleAuthClick (e) {
   }
 }
 
-function doAuth () {
+export function doAuth () {
   if (window.rc.local.apiKey) {
     return
   }
@@ -76,7 +71,7 @@ export function notifyRCAuthed (authorized = true) {
   window.rc.postMessage({
     type: 'rc-adapter-update-authorization-status',
     authorized
-  }, '*')
+  })
 }
 
 export async function unAuth () {

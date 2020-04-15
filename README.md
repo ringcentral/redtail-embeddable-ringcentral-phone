@@ -35,6 +35,9 @@ git clone https://github.com/ringcentral/redtail-embeddable-ringcentral-phone.gi
 cd redtail-embeddable-ringcentral-phone
 npm i
 cp config.sample.js config.js
+
+# download embeddable
+npm run down
 # then run it
 npm start
 # edit src/*.js, webpack will auto-rebuild

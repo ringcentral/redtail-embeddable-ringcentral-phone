@@ -4,14 +4,16 @@ const sysConfigDefault = require('./config.default')
 const ExtraneousFileCleanupPlugin = require('webpack-extraneous-file-cleanup-plugin')
 const path = require('path')
 const LodashModuleReplacementPlugin = require('lodash-webpack-plugin')
-const pack = require('./package.json')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
+const pack = require('./package.json')
+
 const stylusSettingPlugin = new webpack.LoaderOptionsPlugin({
   test: /\.styl$/,
   stylus: {
     preferPathResolver: 'webpack'
   }
 })
+
 const from = path.resolve(
   __dirname,
   'node_modules/ringcentral-embeddable-extension-common/src/icons'
@@ -19,6 +21,19 @@ const from = path.resolve(
 const to1 = path.resolve(
   __dirname,
   'dist/icons'
+)
+
+// const f2 = path.resolve(
+//   __dirname,
+//   'node_modules/jsstore/dist/jsstore.min.js'
+// )
+const f31 = path.resolve(
+  __dirname,
+  'node_modules/react/umd/react.production.min.js'
+)
+const f32 = path.resolve(
+  __dirname,
+  'node_modules/react-dom/umd/react-dom.production.min.js'
 )
 const f3 = path.resolve(
   __dirname,
@@ -33,34 +48,11 @@ const opts = {
   minBytes: 3900
 }
 
-let {
-  clientID,
-  appServer,
-  clientSecret
-} = sysConfigDefault.ringCentralConfigs
-let {
-  serviceName
-} = sysConfigDefault.thirdPartyConfigs
-
-let appConfigQuery = ''
-if (clientID || appServer) {
-  appConfigQuery = `?appVersion=v${pack.version}&prefix=${serviceName}-rc&newAdapterUI=1&userAgent=${serviceName}_extension%2F${pack.version}&disableActiveCallControl=false&appKey=${clientID}&appSecret=${clientSecret}&appServer=${encodeURIComponent(appServer)}`
-}
-
-const { version } = pack
-const appUrl = 'https://ringcentral.github.io/ringcentral-embeddable/app.html'
 const pug = {
   loader: 'pug-html-loader',
   options: {
     data: {
-      version,
-      appConfigQuery,
-      appUrl,
-      _global: {
-        version,
-        appConfigQuery,
-        appUrl
-      }
+      _global: {}
     }
   }
 }
@@ -70,8 +62,6 @@ var config = {
   entry: {
     content: './src/content.js',
     background: './src/background.js',
-    standalone: './node_modules/ringcentral-embeddable-extension-common/src/app/standalone.pug',
-    app: './node_modules/ringcentral-embeddable-extension-common/src/app/app.js',
     manifest: './src/manifest.json'
   },
   output: {
@@ -90,15 +80,36 @@ var config = {
       path.join(process.cwd(), 'node_modules')
     ]
   },
+  externals: {
+    react: 'React',
+    'react-dom': 'ReactDOM'
+  },
   optimization: {
     minimize: sysConfigDefault.minimize
   },
   module: {
     rules: [
       {
-        test: /manifest\.json$/,
+        test: /manifest\.json$|manifest-firefox\.json$/,
         use: [
           'manifest-loader'
+        ]
+      },
+      {
+        test: /\.less$/,
+        use: [
+          {
+            loader: 'style-loader'
+          },
+          {
+            loader: 'css-loader'
+          },
+          {
+            loader: 'less-loader',
+            options: {
+              javascriptEnabled: true
+            }
+          }
         ]
       },
       {
@@ -110,7 +121,13 @@ var config = {
             options: {
               cacheDirectory: true,
               presets: [
-                '@babel/preset-env'
+                '@babel/react',
+                ['@babel/env', {
+                  targets: {
+                    chrome: 58,
+                    node: 'current'
+                  }
+                }]
               ],
               plugins: [
                 '@babel/plugin-proposal-class-properties',
@@ -126,6 +143,14 @@ var config = {
                   '@babel/plugin-transform-runtime',
                   {
                     regenerator: true
+                  }
+                ],
+                [
+                  'import',
+                  {
+                    libraryName: 'antd',
+                    libraryDirectory: 'es',
+                    style: true
                   }
                 ]
               ]
@@ -148,7 +173,7 @@ var config = {
       {
         test: /\.pug$/,
         use: [
-          'file-loader?name=./standalone.html',
+          'file-loader?name=../app/redirect.html',
           'concat-loader',
           'extract-loader',
           'html-loader',
@@ -157,7 +182,7 @@ var config = {
       }
     ]
   },
-  devtool: '#source-map',
+  devtool: 'source-map',
   plugins: [
     stylusSettingPlugin,
     new LodashModuleReplacementPlugin({
@@ -168,8 +193,26 @@ var config = {
       from,
       to: to1,
       force: true
-    }, {
+    }, /* {
+      from: f2,
+      to: to4,
+      force: true
+    }, */ {
       from: f3,
+      to: to4,
+      force: true
+    }, /* {
+      from: f2,
+      to: to4f,
+      force: true
+    }, */
+    {
+      from: f31,
+      to: to4,
+      force: true
+    },
+    {
+      from: f32,
       to: to4,
       force: true
     }], {}),

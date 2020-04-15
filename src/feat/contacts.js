@@ -24,7 +24,8 @@ import $ from 'jquery'
 import {
   remove,
   insert,
-  getByPage
+  getByPage,
+  match
 } from 'ringcentral-embeddable-extension-common/src/common/db'
 import { thirdPartyConfigs } from 'ringcentral-embeddable-extension-common/src/common/app-config'
 // import add from './temp-add-conacts'
@@ -46,12 +47,6 @@ function notifyReSyncContacts () {
   window.rc.postMessage({
     type: 'rc-adapter-sync-third-party-contacts'
   })
-}
-
-function hideSyncTip () {
-  document
-    .querySelector('.rc-sync-contact-button-wrap')
-    .classList.add('rc-hide-to-side')
 }
 
 // const showSyncTip = _.debounce(function () {
@@ -221,6 +216,9 @@ export const getContacts = async function (
     showAuthBtn()
     return final
   }
+  if (!window.rc.rcLogined) {
+    return final
+  }
   let cached = await getByPage(page).catch(e => console.log(e.stack))
   if (cached && cached.result && cached.result.length) {
     console.debug('use cache')
@@ -279,32 +277,19 @@ export function hideContactInfoPanel () {
 export async function showContactInfoPanel (call) {
   if (
     !call ||
-    !call.telephonyStatus ||
-    call.direction === 'Outbound' ||
-    call.telephonyStatus === 'CallConnected'
+    call.telephonyStatus !== 'Ringing' ||
+    call.direction === 'Outbound'
   ) {
     return
   }
-  if (call.telephonyStatus === 'NoCall') {
-    return hideContactInfoPanel()
-  }
-  let isInbound = call.direction === 'Inbound'
-  let phone = isInbound
-    ? _.get(
-      call,
-      'from.phoneNumber'
-    )
-    : _.get(call, 'to.phoneNumber')
+  popup()
+  let phone = _.get(call, 'from.phoneNumber') || _.get(call, 'from')
   if (!phone) {
     return
   }
   phone = formatPhone(phone)
-  let contacts = await getContacts()
-  let contact = _.find(contacts, c => {
-    return _.find(c.phoneNumbers, p => {
-      return formatPhone(p.phoneNumber) === phone
-    })
-  })
+  let contacts = await match([phone])
+  let contact = _.get(contacts, `${phone}[0]`)
   if (!contact) {
     return
   }
@@ -341,44 +326,4 @@ export async function showContactInfoPanel (call) {
 
   document.body.appendChild(elem)
   popup()
-}
-
-function onClickSyncPanel (e) {
-  let { target } = e
-  let { classList } = target
-  if (target.classList.contains('rc-do-sync-contact')) {
-    fetchAllContacts()
-    hideSyncTip()
-  } else if (classList.contains('rc-no-sync-contact')) {
-    hideSyncTip()
-  }
-}
-
-/**
- * get contacts may take a while,
- * user can decide sync or not
- */
-export function renderConfirmGetContactsButton () {
-  let btn = createElementFromHTML(
-    `
-      <div
-        class="rc-sync-contact-button-wrap animate rc-hide-to-side"
-        title=""
-      >
-        <div class="rc-sync-tip animate">
-        After sync, you can access lastest ${serviceName} contacts from RingCentral phone's contacts list. you can skip this by click close button.
-        </div>
-        <span class="rc-iblock">Sync contacts?</span>
-        </span>
-        <span class="rc-do-sync-contact rc-iblock pointer">Yes</span>
-        <span class="rc-no-sync-contact rc-iblock pointer">No</span>
-      </div>
-    `
-  )
-  btn.onclick = onClickSyncPanel
-  if (
-    !document.querySelector('.rc-sync-contact-button-wrap')
-  ) {
-    document.body.appendChild(btn)
-  }
 }
