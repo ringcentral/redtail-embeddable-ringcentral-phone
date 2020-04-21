@@ -252,7 +252,7 @@ export async function fetchAllContacts (getRecent) {
   const len = pages.length
   const lastPage = pages[len - 1]
   let start = 1
-  if (page && page <= lastPage) {
+  if ((page && page <= lastPage) || getRecent) {
     start = page
     upsert = true
   } else {
