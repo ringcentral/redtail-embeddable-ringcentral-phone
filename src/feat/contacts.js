@@ -37,7 +37,6 @@ let {
 let isFetchingAllContacts = false
 // let syncHanlder = null
 const lastSyncPage = 'last-sync-page'
-const lastSyncPageRecent = 'last-sync-page-recent'
 let upsert = true
 const final = {
   result: [],
@@ -242,10 +241,10 @@ export async function fetchAllContacts (getRecent) {
   }
   isFetchingAllContacts = true
   loadingContacts()
-  const lastSync = getRecent
-    ? lastSyncPageRecent
-    : lastSyncPage
-  const page = await getCache(lastSync)
+  const lastSync = lastSyncPage
+  const page = getRecent
+    ? 1
+    : await getCache(lastSync) || 1
   const pages = await getPages(getRecent)
   console.log('last fetching page:', page)
   console.log('pages:', pages)
