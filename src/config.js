@@ -38,6 +38,7 @@ import {
   match
 } from 'ringcentral-embeddable-extension-common/src/common/db'
 import { thirdPartyConfigs } from 'ringcentral-embeddable-extension-common/src/common/app-config'
+import initReact from './lib/react-entry'
 
 let {
   pageSize
@@ -180,7 +181,9 @@ export function thirdPartyServiceConfig (serviceName) {
     } else if (path === '/contacts') {
       let isMannulSync = _.get(data, 'body.type') === 'manual'
       if (isMannulSync) {
-        fetchAllContacts()
+        window.postMessage({
+          type: 'rc-show-sync-menu'
+        }, '*')
         window.rc.postMessage({
           type: 'rc-post-message-response',
           responseId: data.requestId,
@@ -281,4 +284,5 @@ export async function initThirdParty () {
   if (window.rc.local.apiKey) {
     notifyRCAuthed()
   }
+  initReact()
 }

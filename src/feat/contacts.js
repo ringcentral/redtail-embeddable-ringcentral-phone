@@ -37,6 +37,7 @@ let {
 let isFetchingAllContacts = false
 // let syncHanlder = null
 const lastSyncPage = 'last-sync-page'
+const lastSyncPageRecent = 'last-sync-page-recent'
 let upsert = true
 const final = {
   result: [],
@@ -151,9 +152,10 @@ async function getContactsDetails (html, page) {
 /**
  * get contact lists pager
  */
-async function getContact (page = 1) {
+async function getContact (page = 1, getRecent) {
   await setCache(lastSyncPage, page, 'never')
-  let url = `${host}/contacts`
+  let url = `${host}/contacts` +
+  (getRecent ? '/recently_added' : '')
   if (page) {
     url = `${url}?page=${page}`
   }
@@ -173,8 +175,9 @@ async function getContact (page = 1) {
   await getContactsDetails(res, page)
 }
 
-async function getPages () {
-  let url = `${host}/contacts`
+async function getPages (getRecent) {
+  let url = `${host}/contacts` +
+    (getRecent ? '/recently_added' : '')
   let res = await fetch.get(url, {
     headers: {
       Accept: 'text/html'
@@ -228,7 +231,7 @@ export const getContacts = async function (
   return final
 }
 
-export async function fetchAllContacts () {
+export async function fetchAllContacts (getRecent) {
   console.log('fetchAllContacts')
   if (!window.rc.local.apiKey) {
     showAuthBtn()
@@ -239,8 +242,11 @@ export async function fetchAllContacts () {
   }
   isFetchingAllContacts = true
   loadingContacts()
-  const page = await getCache(lastSyncPage)
-  const pages = await getPages()
+  const lastSync = getRecent
+    ? lastSyncPageRecent
+    : lastSyncPage
+  const page = await getCache(lastSync)
+  const pages = await getPages(getRecent)
   console.log('last fetching page:', page)
   console.log('pages:', pages)
   const len = pages.length
@@ -255,12 +261,12 @@ export async function fetchAllContacts () {
   }
   for (;start <= lastPage; start++) {
     console.log('fetching page:', start)
-    await getContact(start)
+    await getContact(start, getRecent)
   }
   stopLoadingContacts()
   isFetchingAllContacts = false
   notifyReSyncContacts()
-  await setCache(lastSyncPage, 0, 'never')
+  await setCache(lastSync, 0, 'never')
   notify('Syncing contacts done', 'info', 3000)
 }
 
