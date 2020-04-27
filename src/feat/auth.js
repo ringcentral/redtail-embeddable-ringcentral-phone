@@ -2,7 +2,6 @@
  * auth related feature
  */
 
-import { thirdPartyConfigs } from 'ringcentral-embeddable-extension-common/src/common/app-config'
 import {
   sendMsgToRCIframe
 } from 'ringcentral-embeddable-extension-common/src/common/helpers'
