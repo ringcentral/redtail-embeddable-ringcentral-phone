@@ -17,7 +17,6 @@ import {
   doAuth,
   notifyRCAuthed,
   unAuth,
-  renderAuthButton,
   lsKeys
 } from './feat/auth.js'
 import { upgrade } from 'ringcentral-embeddable-extension-common/src/feat/upgrade-notification'
@@ -184,14 +183,6 @@ export function thirdPartyServiceConfig (serviceName) {
         window.postMessage({
           type: 'rc-show-sync-menu'
         }, '*')
-        window.rc.postMessage({
-          type: 'rc-post-message-response',
-          responseId: data.requestId,
-          response: {
-            data: []
-          }
-        })
-        return
       }
       let page = _.get(data, 'body.page') || 1
       let contacts = await getContacts(page)
@@ -246,7 +237,6 @@ export function thirdPartyServiceConfig (serviceName) {
       })
     } else if (path === '/activities') {
       const activities = await getActivities(data.body)
-      console.log(activities, 'activities')
       window.rc.postMessage({
         type: 'rc-post-message-response',
         responseId: data.requestId,
@@ -279,8 +269,6 @@ export async function initThirdParty () {
   window.rc.local = {
     apiKey
   }
-  // get the html ready
-  renderAuthButton()
   if (window.rc.local.apiKey) {
     notifyRCAuthed()
   }

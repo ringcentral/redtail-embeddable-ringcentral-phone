@@ -198,10 +198,10 @@ async function createOne (i) {
 }
 
 export async function createAll () {
-  const all = 4000
-  const start = 102
+  const all = 200
+  const start = 0
   for (let i = start; i < all + start; i++) {
     await createOne(i)
-    await wait(1000)
+    await wait(1)
   }
 }

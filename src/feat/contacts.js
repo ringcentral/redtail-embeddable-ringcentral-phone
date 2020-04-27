@@ -28,9 +28,9 @@ import {
   match
 } from 'ringcentral-embeddable-extension-common/src/common/db'
 import { thirdPartyConfigs } from 'ringcentral-embeddable-extension-common/src/common/app-config'
-// import add from './temp-add-conacts'
+// import { createAll } from './add-contacts'
+// createAll()
 
-// add()
 let {
   serviceName
 } = thirdPartyConfigs
@@ -142,6 +142,7 @@ async function getContactsDetails (html, page) {
       id
     })
   })
+  console.log('contact page list for page', page, list)
   for (let item of list) {
     let { id } = item
     await getContactDetail(id, item.name, page).catch(console.log)
@@ -152,7 +153,9 @@ async function getContactsDetails (html, page) {
  * get contact lists pager
  */
 async function getContact (page = 1, getRecent) {
-  await setCache(lastSyncPage, page, 'never')
+  if (!getRecent) {
+    await setCache(lastSyncPage, page, 'never')
+  }
   let url = `${host}/contacts` +
   (getRecent ? '/recently_added' : '')
   if (page) {
@@ -245,18 +248,17 @@ export async function fetchAllContacts (getRecent) {
   const page = getRecent
     ? 1
     : await getCache(lastSync) || 1
-  const pages = await getPages(getRecent)
+  let pages = await getPages(getRecent)
   console.log('last fetching page:', page)
   console.log('pages:', pages)
   const len = pages.length
   const lastPage = pages[len - 1]
   let start = 1
-  if ((page && page <= lastPage) || getRecent) {
+  console.log('up1', typeof page)
+  if ((page > 1 && page <= lastPage) || getRecent) {
     start = page
-    upsert = true
   } else {
     await remove()
-    upsert = false
   }
   for (;start <= lastPage; start++) {
     console.log('fetching page:', start)
@@ -265,7 +267,9 @@ export async function fetchAllContacts (getRecent) {
   stopLoadingContacts()
   isFetchingAllContacts = false
   notifyReSyncContacts()
-  await setCache(lastSync, 0, 'never')
+  if (!getRecent) {
+    await setCache(lastSync, 0, 'never')
+  }
   notify('Syncing contacts done', 'info', 3000)
 }
 

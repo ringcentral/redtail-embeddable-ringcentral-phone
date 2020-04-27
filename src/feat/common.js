@@ -88,3 +88,5 @@ export function getUserId () {
 export function formatPhoneLocal (number) {
   return formatPhone(number, undefined, 'formatNational')
 }
+
+export const autoLogPrefix = 'rc-auto-log-id:'

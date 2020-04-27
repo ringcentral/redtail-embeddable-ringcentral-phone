@@ -23,11 +23,21 @@ import {
 import {
   match
 } from 'ringcentral-embeddable-extension-common/src/common/db'
+import * as ls from 'ringcentral-embeddable-extension-common/src/common/ls'
 
 let {
   showCallLogSyncForm,
   serviceName
 } = thirdPartyConfigs
+
+function buildKey (id) {
+  return `rc-log-${window.rc.currentUserId}-${id}`
+}
+
+async function saveLog (id, engageId) {
+  const key = buildKey(id)
+  await ls.set(key, engageId)
+}
 
 function buildFormData (data) {
   return Object.keys(data)
@@ -113,7 +123,7 @@ export async function syncCallLogToRedtail (body) {
     return createForm(
       body,
       serviceName,
-      (formData) => doSync(body, formData)
+      (formData) => doSync(body, formData, isManuallySync)
     )
   } else {
     doSync(body, {})
@@ -127,17 +137,17 @@ export async function syncCallLogToRedtail (body) {
  * @param {*} body
  * @param {*} formData
  */
-async function doSync (body, formData) {
+async function doSync (body, formData, isManuallySync) {
   let contacts = await getSyncContacts(body)
   if (!contacts.length) {
     return notify('No related contacts')
   }
   for (let contact of contacts) {
-    await doSyncOne(contact, body, formData)
+    await doSyncOne(contact, body, formData, isManuallySync)
   }
 }
 
-async function doSyncOne (contact, body, formData) {
+async function doSyncOne (contact, body, formData, isManuallySync) {
   let { id: contactId, name: contactName } = contact
   if (!contactId) {
     return notify('no related contact', 'warn')
@@ -155,7 +165,12 @@ async function doSyncOne (contact, body, formData) {
   let st = start.format('h:ma')
   let ed = end.format('MM/DD/YYYY')
   let et = end.format('h:ma')
-
+  const sid = _.get(body, 'call.telephonySessionId')
+  const key = buildKey(sid)
+  const ig = await ls.get(key)
+  if (ig) {
+    return notify('Call already been logged', 5000)
+  }
   let data = {
     utf8: '✓',
     contact_name: contactName,
@@ -192,6 +207,7 @@ async function doSyncOne (contact, body, formData) {
     body: buildFormData(data)
   })
   if (res) {
+    await saveLog(sid, 'true')
     notifySyncSuccess({ id: contactId })
   } else {
     notify('call log sync to redtailCRM failed', 'warn')
