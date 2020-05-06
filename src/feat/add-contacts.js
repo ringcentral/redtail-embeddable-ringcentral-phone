@@ -4,7 +4,6 @@ import {
   host
 } from 'ringcentral-embeddable-extension-common/src/common/helpers'
 import {
-  wait,
   getXid,
   getCSRF
 } from './common'
@@ -96,11 +95,17 @@ crm_contact_individual%5Broles%5D%5Bcsa%5D:
 commit: Save+Contact
 */
 
-async function createOne (i) {
+export async function addContact ({
+  email,
+  name,
+  phoneNationalFormatted,
+  phoneNational,
+  countryCode
+}) {
   let data = `
   utf8: ✓
   crm_contact_individual[salutation_id]:
-  crm_contact_individual[first_name]: Testt${i}
+  crm_contact_individual[first_name]: ${name}
   crm_contact_individual[middle_name]:
   crm_contact_individual[last_name]: Zz
   crm_contact_individual[suffix]:
@@ -131,15 +136,15 @@ async function createOne (i) {
   crm_contact_individual[addresses_attributes][0][state]:
   crm_contact_individual[addresses_attributes][0][zip]:
   crm_contact_individual[phones_attributes][0][phone_type]: 6
-  crm_contact_individual[phones_attributes][0][number]:  (205) 409-7${376 + i}
-  crm_contact_individual[phones_attributes][0][country_code]: 1
-  crm_contact_individual[phones_attributes][0][number]: 2054097${376 + i}
+  crm_contact_individual[phones_attributes][0][number]: ${phoneNationalFormatted}
+  crm_contact_individual[phones_attributes][0][country_code]: ${countryCode}
+  crm_contact_individual[phones_attributes][0][number]: ${phoneNational}
   crm_contact_individual[phones_attributes][0][is_primary]: 0
   crm_contact_individual[phones_attributes][0][is_primary]: 1
   crm_contact_individual[phones_attributes][0][extension]:
   crm_contact_individual[phones_attributes][0][speed_dial]:
   crm_contact_individual[emails_attributes][0][email_type]: 2
-  crm_contact_individual[emails_attributes][0][address]: zzz${i + 1}@zz.com
+  crm_contact_individual[emails_attributes][0][address]: ${email}
   crm_contact_individual[emails_attributes][0][is_primary]: 0
   crm_contact_individual[emails_attributes][0][is_primary]: 1
   crm_contact_individual[urls_attributes][0][url_type]:
@@ -201,7 +206,15 @@ export async function createAll () {
   const all = 200
   const start = 0
   for (let i = start; i < all + start; i++) {
-    await createOne(i)
-    await wait(1)
+    console.log(i)
+    const c = {
+      email: `zzz${i + 1}@zz.com`,
+      name: `Testt${i}`,
+      phoneNationalFormatted: `(205) 409-${7376 + i}`,
+      phoneNational: `205409${7376 + i}`,
+      countryCode: '1'
+    }
+    const res = await addContact(c)
+    console.log(res, 'contact created')
   }
 }

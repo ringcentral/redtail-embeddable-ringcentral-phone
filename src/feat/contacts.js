@@ -188,14 +188,20 @@ async function getPages (getRecent) {
   if (!res) {
     return [1]
   }
+  const reg = /page=(\d+)/
   let pages = Array.from($(res).find('ul.pagination li a[href]'))
     .map(d => d.getAttribute('href'))
     .filter(d => d.includes('page='))
-  pages = _.uniq(pages).map((d, i) => i + 1)
+    .map(d => {
+      const arr = d.match(reg)
+      return arr ? parseInt(arr[1], 10) : 0
+    })
+    .sort((a, b) => a - b)
   if (!pages.length) {
     pages = [1]
   }
-  return pages
+  const max = _.last(pages)
+  return new Array(max).fill(0).map((n, i) => i + 1)
 }
 
 function loadingContacts () {
@@ -233,7 +239,7 @@ export const getContacts = async function (
   return final
 }
 
-export async function fetchAllContacts (getRecent) {
+export async function fetchAllContacts (_getRecent) {
   console.log('fetchAllContacts')
   if (!window.rc.local.apiKey) {
     showAuthBtn()
@@ -245,9 +251,11 @@ export async function fetchAllContacts (getRecent) {
   isFetchingAllContacts = true
   loadingContacts()
   const lastSync = lastSyncPage
-  const page = getRecent
-    ? 1
-    : await getCache(lastSync) || 1
+  let getRecent = !!_getRecent
+  const page = await getCache(lastSync) || 1
+  if (page > 1) {
+    getRecent = false
+  }
   let pages = await getPages(getRecent)
   console.log('last fetching page:', page)
   console.log('pages:', pages)
