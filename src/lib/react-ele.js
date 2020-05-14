@@ -7,6 +7,7 @@ import { Modal, Button } from 'antd'
 import { SyncOutlined, InfoCircleOutlined } from '@ant-design/icons'
 import { fetchAllContacts } from '../feat/contacts'
 import { doAuth } from '../feat/auth'
+import AutoSync from './auto-resync'
 
 function showAuthPanel () {
   let mod = null
@@ -92,6 +93,7 @@ function showSyncMenu () {
         >
           Cancel
         </Button>
+        <AutoSync />
       </div>
     </div>
   )

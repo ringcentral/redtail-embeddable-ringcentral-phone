@@ -34,10 +34,13 @@ import {
 } from './feat/common'
 import {
   search,
-  match
+  match,
+  getByPage
+
 } from 'ringcentral-embeddable-extension-common/src/common/db'
 import { thirdPartyConfigs } from 'ringcentral-embeddable-extension-common/src/common/app-config'
 import initReact from './lib/react-entry'
+import { resyncCheck } from './lib/auto-resync'
 
 let {
   pageSize
@@ -273,4 +276,6 @@ export async function initThirdParty () {
     notifyRCAuthed()
   }
   initReact()
+  const db = await getByPage(1, 1)
+  resyncCheck(db && db.count)
 }

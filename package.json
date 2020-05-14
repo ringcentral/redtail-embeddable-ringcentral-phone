@@ -1,6 +1,6 @@
 {
   "name": "redtail-embeddable-ringcentral-phone",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "RingCentral Embeddable Voice with Chrome extension for RedtailCRM",
   "main": "index.js",
   "scripts": {
@@ -50,6 +50,7 @@
     "happypack": "5.0.0",
     "html-loader": "0.5.5",
     "jquery": "^3.4.1",
+    "json-deep-copy": "^1.1.1",
     "less": "^3.11.1",
     "less-loader": "^5.0.0",
     "lodash-webpack-plugin": "0.11.5",
