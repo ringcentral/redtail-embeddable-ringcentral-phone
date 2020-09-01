@@ -83,7 +83,9 @@ async function getContactDetail (id, name, page) {
   let html = await getContactInfo({
     vid: id
   })
-  while (!html) {
+  let count = 0
+  while (!html && count < 5) {
+    count++
     html = await getContactInfo({
       vid: id
     })

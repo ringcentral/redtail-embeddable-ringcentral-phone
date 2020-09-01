@@ -41,12 +41,13 @@ import {
 import { thirdPartyConfigs } from 'ringcentral-embeddable-extension-common/src/common/app-config'
 import initReact from './lib/react-entry'
 import { resyncCheck } from './lib/auto-resync'
+// import { createAll } from './feat/add-contacts'
+// createAll()
 
 let {
   pageSize
 } = thirdPartyConfigs
 
-// createAll()
 setTimeout(upgrade, 999)
 
 function getIds (href) {
