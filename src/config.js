@@ -140,7 +140,7 @@ export function thirdPartyServiceConfig (serviceName) {
     if (!data) {
       return
     }
-    let { type, loggedIn, path, call } = data
+    let { type, loggedIn, path, call, sessionIds } = data
     if (type === 'rc-login-status-notify') {
       console.debug('rc logined', loggedIn)
       window.rc.rcLogined = loggedIn
@@ -151,6 +151,14 @@ export function thirdPartyServiceConfig (serviceName) {
       !window.rc.local.apiKey
     ) {
       showAuthBtn()
+    } else if (
+      type === 'rc-route-changed-notify' &&
+      path === '/history'
+    ) {
+      window.rc.postMessage({
+        type: 'rc-adapter-trigger-call-logger-match',
+        sessionIds
+      })
     } else if (
       type === 'rc-active-call-notify'
     ) {
