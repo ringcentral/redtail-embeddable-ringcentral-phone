@@ -3,7 +3,6 @@
  */
 
 import { thirdPartyConfigs } from 'ringcentral-embeddable-extension-common/src/common/app-config'
-import fetch from 'ringcentral-embeddable-extension-common/src/common/fetch'
 import { createForm, getContactInfo } from './call-log-sync-form'
 import moment from 'moment'
 import extLinkSvg from 'ringcentral-embeddable-extension-common/src/common/link-external.svg'
@@ -11,11 +10,6 @@ import {
   showAuthBtn
 } from './auth'
 import _ from 'lodash'
-import {
-  getXid,
-  getCSRF,
-  buildFormData
-} from './common'
 import {
   notify,
   host,
