@@ -13,7 +13,8 @@ import {
 import _ from 'lodash'
 import {
   getXid,
-  getCSRF
+  getCSRF,
+  buildFormData
 } from './common'
 import {
   notify,
@@ -24,6 +25,7 @@ import {
   match
 } from 'ringcentral-embeddable-extension-common/src/common/db'
 import * as ls from 'ringcentral-embeddable-extension-common/src/common/ls'
+import { logNote, logActivity } from './log-call'
 
 let {
   showCallLogSyncForm,
@@ -37,18 +39,6 @@ function buildKey (id) {
 async function saveLog (id, engageId) {
   const key = buildKey(id)
   await ls.set(key, engageId)
-}
-
-function buildFormData (data) {
-  return Object.keys(data)
-    .reduce((prev, k, i) => {
-      let v = data[k]
-      return prev +
-        (i ? '&' : '') +
-        encodeURIComponent(k) +
-        '=' +
-        encodeURIComponent(v)
-    }, '')
 }
 
 async function getSyncContacts (body) {
@@ -171,41 +161,24 @@ async function doSyncOne (contact, body, formData, isManuallySync) {
   if (ig) {
     return notify('Call already been logged', 5000)
   }
-  let data = {
-    utf8: '✓',
-    contact_name: contactName,
-    contact_id: contactId,
-    'crm_activity[subject]': (formData.title || 'Autosync:') + details,
-    'crm_activity[all_day]': 0,
-    'crm_activity[start_date]': sd,
-    'crm_activity[start_time]': st,
-    'crm_activity[end_date]': ed,
-    'crm_activity[end_time]': et,
-    'crm_activity[description]': recording,
-    'crm_activity[activity_code_id]': 3,
-    'crm_activity[percentdone]': 0,
-    'crm_activity[repeats]': 'never',
-    'crm_activity[category_id]': 2,
-    // 'crm_activity[attendees][]': '',
-    'crm_activity[attendees][]': window.rc.currentUserId,
-    // 'crm_activity[attendees_attributes][0][type]': 'Crm::Activity::Attendee::User',
-    // 'crm_activity[attendees_attributes][0][user_id]': window.rc.currentUserId,
-    'crm_activity[importance]': 2,
-    'crm_activity[priority]': '',
-    commit: 'Create Activity'
-  }
-
-  let url = `${host}/activities`
-  let res = await fetch.post(url, {}, {
-    headers: {
-      Accept: '*/*;q=0.5, text/javascript, application/javascript, application/ecmascript, application/x-ecmascript',
-      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-      'X-CSRF-Token': getCSRF(),
-      'X-NewRelic-ID': getXid(),
-      'X-Requested-With': 'XMLHttpRequest'
-    },
-    body: buildFormData(data)
-  })
+  const res = window.rc.logType === 'NOTE'
+    ? await logNote({
+      contactId,
+      formData,
+      details,
+      recording
+    })
+    : await logActivity({
+      contactName,
+      contactId,
+      formData,
+      details,
+      sd,
+      st,
+      ed,
+      et,
+      recording
+    })
   if (res) {
     await saveLog(sid, 'true')
     notifySyncSuccess({ id: contactId })

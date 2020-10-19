@@ -90,3 +90,15 @@ export function formatPhoneLocal (number) {
 }
 
 export const autoLogPrefix = 'rc-auto-log-id:'
+
+export function buildFormData (data) {
+  return Object.keys(data)
+    .reduce((prev, k, i) => {
+      let v = data[k]
+      return prev +
+        (i ? '&' : '') +
+        encodeURIComponent(k) +
+        '=' +
+        encodeURIComponent(v)
+    }, '')
+}

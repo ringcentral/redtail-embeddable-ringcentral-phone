@@ -104,9 +104,9 @@ export const phoneNumberSelectors = [
  * thirdPartyService config
  * @param {*} serviceName
  */
-export function thirdPartyServiceConfig (serviceName) {
+export async function thirdPartyServiceConfig (serviceName) {
   console.log(serviceName)
-
+  const logType = await ls.get('rc-logType') || 'ACT'
   let services = {
     name: serviceName,
     // show contacts in ringcentral widgets
@@ -127,7 +127,14 @@ export function thirdPartyServiceConfig (serviceName) {
 
     // show contact activities in ringcentral widgets
     activitiesPath: '/activities',
-    activityPath: '/activity'
+    activityPath: '/activity',
+    settingsPath: '/settings',
+    settings: [
+      {
+        name: 'Log Calls as notes',
+        value: logType === 'NOTE'
+      }
+    ]
   }
 
   // handle ringcentral event
@@ -189,6 +196,11 @@ export function thirdPartyServiceConfig (serviceName) {
         responseId: data.requestId,
         response: { data: 'ok' }
       }, '*')
+    } else if (data.path === '/settings') {
+      const arr = data.body.settings
+      const logASNote = arr[0].value
+      window.rc.logType = logASNote ? 'NOTE' : 'ACT'
+      ls.set('rc-logType', window.rc.logType)
     } else if (path === '/contacts') {
       let isMannulSync = _.get(data, 'body.type') === 'manual'
       if (isMannulSync) {
@@ -277,6 +289,7 @@ export function thirdPartyServiceConfig (serviceName) {
 export async function initThirdParty () {
   window.rc.countryCode = await ls.get('rc-country-code') || undefined
   console.log('rc.countryCode:', window.rc.countryCode)
+  window.rc.logSMSType = await ls.get('rc-logType') || 'ACT'
   let apiKey = await ls.get(lsKeys.apiKeyLSKey) || ''
   window.rc.local = {
     apiKey
