@@ -22,7 +22,6 @@ import {
 } from './common'
 import $ from 'jquery'
 import {
-  remove,
   insert,
   getByPage,
   match
@@ -267,8 +266,6 @@ export async function fetchAllContacts (_getRecent) {
   console.log('up1', typeof page)
   if ((page > 1 && page <= lastPage) || getRecent) {
     start = page
-  } else {
-    await remove()
   }
   for (;start <= lastPage; start++) {
     console.log('fetching page:', start)
