@@ -123,7 +123,9 @@ async function getContactDetail (id, name, page) {
   res.phoneNumbersForSearch = res.phoneNumbers.map(
     d => formatPhone(d.phoneNumber)
   ).join(',')
-  await insert(res, upsert)
+  if (res.phoneNumbers.length) {
+    await insert(res, upsert)
+  }
 }
 
 /**
