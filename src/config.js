@@ -290,6 +290,10 @@ export async function initThirdParty () {
   window.rc.countryCode = await ls.get('rc-country-code') || undefined
   console.log('rc.countryCode:', window.rc.countryCode)
   window.rc.logSMSType = await ls.get('rc-logType') || 'ACT'
+  const syncTimeStamp = await ls.get('rc-sync-timestamp')
+  if (syncTimeStamp) {
+    window.rc.syncTimeStamp = syncTimeStamp
+  }
   let apiKey = await ls.get(lsKeys.apiKeyLSKey) || ''
   window.rc.local = {
     apiKey

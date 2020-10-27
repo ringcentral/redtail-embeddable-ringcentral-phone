@@ -27,6 +27,7 @@ import {
   match
 } from 'ringcentral-embeddable-extension-common/src/common/db'
 import { thirdPartyConfigs } from 'ringcentral-embeddable-extension-common/src/common/app-config'
+import * as ls from 'ringcentral-embeddable-extension-common/src/common/ls'
 // import { createAll } from './add-contacts'
 // createAll()
 
@@ -125,6 +126,7 @@ async function getContactDetail (id, name, page) {
   ).join(',')
   if (res.phoneNumbers.length) {
     await insert(res, upsert)
+    updateTimeStamp()
   }
 }
 
@@ -238,7 +240,9 @@ export const getContacts = async function (
     console.debug('use cache')
     return cached
   }
-  fetchAllContacts()
+  if (!window.rc.syncTimeStamp) {
+    fetchAllContacts()
+  }
   return final
 }
 
@@ -265,7 +269,6 @@ export async function fetchAllContacts (_getRecent) {
   const len = pages.length
   const lastPage = pages[len - 1]
   let start = 1
-  console.log('up1', typeof page)
   if ((page > 1 && page <= lastPage) || getRecent) {
     start = page
   }
@@ -275,13 +278,17 @@ export async function fetchAllContacts (_getRecent) {
   }
   stopLoadingContacts()
   isFetchingAllContacts = false
-  notifyReSyncContacts()
   if (!getRecent) {
     await setCache(lastSync, 0, 'never')
   }
   notify('Syncing contacts done', 'info', 3000)
 }
 
+function updateTimeStamp () {
+  const now = Date.now()
+  window.rc.syncTimeStamp = now
+  ls.set('rc-sync-timestamp', now)
+}
 export function hideContactInfoPanel () {
   let dom = document
     .querySelector('.rc-contact-panel')
