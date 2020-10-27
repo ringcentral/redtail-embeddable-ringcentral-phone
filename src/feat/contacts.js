@@ -281,6 +281,7 @@ export async function fetchAllContacts (_getRecent) {
   if (!getRecent) {
     await setCache(lastSync, 0, 'never')
   }
+  notifyReSyncContacts()
   notify('Syncing contacts done', 'info', 3000)
 }
 
