@@ -126,7 +126,8 @@ async function getContactDetail (id, name, page) {
   ).join(',')
   if (res.phoneNumbers.length) {
     await insert(res, upsert)
-    updateTimeStamp()
+    await updateTimeStamp()
+    notifyReSyncContacts()
   }
 }
 
@@ -285,10 +286,10 @@ export async function fetchAllContacts (_getRecent) {
   notify('Syncing contacts done', 'info', 3000)
 }
 
-function updateTimeStamp () {
+async function updateTimeStamp () {
   const now = Date.now()
   window.rc.syncTimeStamp = now
-  ls.set('rc-sync-timestamp', now)
+  return ls.set('rc-sync-timestamp', now)
 }
 export function hideContactInfoPanel () {
   let dom = document

@@ -107,6 +107,7 @@ export const phoneNumberSelectors = [
 export async function thirdPartyServiceConfig (serviceName) {
   console.log(serviceName)
   const logType = await ls.get('rc-logType') || 'ACT'
+  const noLogInbound = await ls.get('rc-no-log-inbound') || false
   let services = {
     name: serviceName,
     // show contacts in ringcentral widgets
@@ -133,6 +134,10 @@ export async function thirdPartyServiceConfig (serviceName) {
       {
         name: 'Log Calls as notes',
         value: logType === 'NOTE'
+      },
+      {
+        name: 'Do not log inbound calls',
+        value: noLogInbound
       }
     ]
   }
@@ -200,7 +205,10 @@ export async function thirdPartyServiceConfig (serviceName) {
       const arr = data.body.settings
       const logASNote = arr[0].value
       window.rc.logType = logASNote ? 'NOTE' : 'ACT'
-      ls.set('rc-logType', window.rc.logType)
+      await ls.set('rc-logType', window.rc.logType)
+      const noLogInbound = arr[1].value
+      window.rc.noLogInbound = noLogInbound
+      await ls.set('rc-no-log-inbound', window.rc.noLogInbound)
     } else if (path === '/contacts') {
       let isMannulSync = _.get(data, 'body.type') === 'manual'
       if (isMannulSync) {
@@ -289,7 +297,8 @@ export async function thirdPartyServiceConfig (serviceName) {
 export async function initThirdParty () {
   window.rc.countryCode = await ls.get('rc-country-code') || undefined
   console.log('rc.countryCode:', window.rc.countryCode)
-  window.rc.logSMSType = await ls.get('rc-logType') || 'ACT'
+  window.rc.logType = await ls.get('rc-logType') || 'ACT'
+  window.rc.noLogInbound = await ls.get('rc-no-log-inbound') || false
   const syncTimeStamp = await ls.get('rc-sync-timestamp')
   if (syncTimeStamp) {
     window.rc.syncTimeStamp = syncTimeStamp

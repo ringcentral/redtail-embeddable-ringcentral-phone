@@ -10,6 +10,7 @@ import {
   showAuthBtn
 } from './auth'
 import _ from 'lodash'
+import prettyMs from 'pretty-ms'
 import {
   notify,
   host,
@@ -136,13 +137,18 @@ async function doSyncOne (contact, body, formData, isManuallySync) {
   if (!contactId) {
     return notify('no related contact', 'warn')
   }
+  const isInbound = _.get(body, 'call.direction') === 'Inbound'
+  if (window.rc.noLogInbound && isInbound && !isManuallySync) {
+    return null
+  }
   let recording = body.call.recording
     ? `Recording link: ${body.call.recording.link}`
     : ''
   let toNumber = _.get(body, 'call.to.phoneNumber')
   let fromNumber = _.get(body, 'call.from.phoneNumber')
   let { duration } = body.call
-  let details = `${formData.title || ''}:Call from ${fromNumber} to ${toNumber}, duration: ${duration} seconds.`
+  let durationFormatted = prettyMs(duration * 1000)
+  let details = `${formData.title || ''}:Call from ${fromNumber} to ${toNumber}, duration: ${durationFormatted}`
   let start = moment(body.call.startTime)
   let end = moment(body.call.startTime + duration * 1000)
   let sd = start.format('MM/DD/YYYY')
@@ -152,8 +158,8 @@ async function doSyncOne (contact, body, formData, isManuallySync) {
   const sid = _.get(body, 'call.telephonySessionId')
   const key = buildKey(sid)
   const ig = await ls.get(key)
-  if (ig) {
-    return notify('Call already been logged', 5000)
+  if (ig && !isManuallySync) {
+    return null
   }
   const res = window.rc.logType === 'NOTE'
     ? await logNote({
