@@ -80,7 +80,7 @@ export async function getNumbers (ids) {
 
 export function getUserId () {
   let reg = /currentUserId: (\d+),/
-  let arr = document.body.innerHTML.match(reg) || []
+  let arr = document.documentElement.outerHTML.match(reg) || []
   let id = arr[1]
   return id || ''
 }

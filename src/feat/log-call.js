@@ -81,7 +81,7 @@ export async function logNote ({
   details,
   recording
 }) {
-  const body = `<strong>${formData.title || 'Auto Call log'}</strong><br />${details}<br />${recording}`
+  const body = `<strong>${formData.description || ''}</strong><br />${details}<br />${recording}`
   const data = {
     utf8: '✓',
     note_template: '',
@@ -132,19 +132,21 @@ export async function logActivity ({
   st,
   ed,
   et,
-  recording
+  recording,
+  isManuallySync
 }) {
+  const title = isManuallySync ? 'Call log' : 'Auto Call log'
   let data = {
     utf8: '✓',
     contact_name: contactName,
     contact_id: contactId,
-    'crm_activity[subject]': (formData.title || 'Autosync:') + details,
+    'crm_activity[subject]': title,
     'crm_activity[all_day]': 0,
     'crm_activity[start_date]': sd,
     'crm_activity[start_time]': st,
     'crm_activity[end_date]': ed,
     'crm_activity[end_time]': et,
-    'crm_activity[description]': recording,
+    'crm_activity[description]': formData.description + ', ' + details + ', ' + recording,
     'crm_activity[activity_code_id]': 3,
     'crm_activity[percentdone]': 0,
     'crm_activity[repeats]': 'never',

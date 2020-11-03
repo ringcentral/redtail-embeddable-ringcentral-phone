@@ -148,7 +148,8 @@ async function doSyncOne (contact, body, formData, isManuallySync) {
   let fromNumber = _.get(body, 'call.from.phoneNumber')
   let { duration } = body.call
   let durationFormatted = prettyMs(duration * 1000)
-  let details = `${formData.title || ''}:Call from ${fromNumber} to ${toNumber}, duration: ${durationFormatted}`
+  let typeDesc = isManuallySync ? '' : '[AutoCallLog]'
+  let details = `${typeDesc}Call from ${fromNumber} to ${toNumber}, duration: ${durationFormatted}`
   let start = moment(body.call.startTime)
   let end = moment(body.call.startTime + duration * 1000)
   let sd = start.format('MM/DD/YYYY')
@@ -166,7 +167,8 @@ async function doSyncOne (contact, body, formData, isManuallySync) {
       contactId,
       formData,
       details,
-      recording
+      recording,
+      isManuallySync
     })
     : await logActivity({
       contactName,
@@ -177,7 +179,8 @@ async function doSyncOne (contact, body, formData, isManuallySync) {
       st,
       ed,
       et,
-      recording
+      recording,
+      isManuallySync
     })
   if (res) {
     await saveLog(sid, 'true')
