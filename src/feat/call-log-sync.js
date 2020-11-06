@@ -153,7 +153,7 @@ async function doSyncOne (contact, body, formData, isManuallySync) {
   let typeDesc = isManuallySync ? '' : '[AutoCallLog]'
   let sd = start.format('MM/DD/YYYY')
   let st = start.format('h:ma')
-  let details = `${typeDesc}Call from ${fromNumber} to ${toNumber}, duration: ${durationFormatted}, From ${sd} ${st}`
+  let details = `${typeDesc}Call from ${fromNumber} to ${toNumber}, duration: ${durationFormatted}, from ${sd} ${st}`
   let ed = end.format('MM/DD/YYYY')
   let et = end.format('h:ma')
   const sid = _.get(body, 'call.telephonySessionId')
