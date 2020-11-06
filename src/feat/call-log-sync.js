@@ -148,12 +148,12 @@ async function doSyncOne (contact, body, formData, isManuallySync) {
   let fromNumber = _.get(body, 'call.from.phoneNumber')
   let { duration } = body.call
   let durationFormatted = prettyMs(duration * 1000)
-  let typeDesc = isManuallySync ? '' : '[AutoCallLog]'
-  let details = `${typeDesc}Call from ${fromNumber} to ${toNumber}, duration: ${durationFormatted}`
   let start = moment(body.call.startTime)
   let end = moment(body.call.startTime + duration * 1000)
+  let typeDesc = isManuallySync ? '' : '[AutoCallLog]'
   let sd = start.format('MM/DD/YYYY')
   let st = start.format('h:ma')
+  let details = `${typeDesc}Call from ${fromNumber} to ${toNumber}, duration: ${durationFormatted}, From ${sd} ${st}`
   let ed = end.format('MM/DD/YYYY')
   let et = end.format('h:ma')
   const sid = _.get(body, 'call.telephonySessionId')
