@@ -102,3 +102,17 @@ export function buildFormData (data) {
         encodeURIComponent(v)
     }, '')
 }
+
+export function getFullNumber (numberObj) {
+  if (!numberObj) {
+    return ''
+  } else if (_.isString(numberObj)) {
+    return numberObj
+  }
+  const {
+    extensionNumber,
+    phoneNumber = ''
+  } = numberObj
+  return phoneNumber +
+    (extensionNumber ? '#' + extensionNumber : '')
+}

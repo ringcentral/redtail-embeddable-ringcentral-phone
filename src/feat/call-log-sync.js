@@ -21,33 +21,44 @@ import {
 } from 'ringcentral-embeddable-extension-common/src/common/db'
 import * as ls from 'ringcentral-embeddable-extension-common/src/common/ls'
 import { logNote, logActivity } from './log-call'
-
+import { getFullNumber } from './common'
 let {
   showCallLogSyncForm,
   serviceName
 } = thirdPartyConfigs
 
-function buildKey (id) {
-  return `rc-log-${window.rc.currentUserId}-${id}`
+function buildKey (id, cid) {
+  return `rc-log-${window.rc.currentUserId}-${id}-${cid}`
 }
 
-async function saveLog (id, engageId) {
-  const key = buildKey(id)
+async function saveLog (id, engageId, cid) {
+  const key = buildKey(id, cid)
   await ls.set(key, engageId)
 }
 
 async function getSyncContacts (body) {
+  // let objs = _.filter(
+  //   [
+  //     ..._.get(body, 'call.toMatches') || [],
+  //     ..._.get(body, 'call.fromMatches') || [],
+  //     ...(_.get(body, 'correspondentEntity') ? [_.get(body, 'correspondentEntity')] : [])
+  //   ],
+  //   m => m.type === serviceName
+  // )
+  // if (objs.length) {
+  //   return objs
+  // }
   let all = []
   if (body.call) {
-    let nf = _.get(body, 'to.phoneNumber') ||
-      _.get(body, 'call.to.phoneNumber')
-    let nt = _.get(body, 'from.phoneNumber') ||
-      _.get(body.call, 'from.phoneNumber')
+    let nf = getFullNumber(_.get(body, 'to')) ||
+      getFullNumber(_.get(body, 'call.to'))
+    let nt = getFullNumber(_.get(body, 'from')) ||
+      getFullNumber(_.get(body.call, 'from'))
     all = [nt, nf]
   } else {
     all = [
-      _.get(body, 'conversation.self.phoneNumber'),
-      ...body.conversation.correspondents.map(d => d.phoneNumber)
+      getFullNumber(_.get(body, 'conversation.self')),
+      ...body.conversation.correspondents.map(d => getFullNumber(d))
     ]
   }
   all = all.map(s => formatPhone(s))
@@ -144,8 +155,8 @@ async function doSyncOne (contact, body, formData, isManuallySync) {
   let recording = body.call.recording
     ? `Recording link: ${body.call.recording.link}`
     : ''
-  let toNumber = _.get(body, 'call.to.phoneNumber')
-  let fromNumber = _.get(body, 'call.from.phoneNumber')
+  let toNumber = getFullNumber(_.get(body, 'call.to'))
+  let fromNumber = getFullNumber(_.get(body, 'call.from'))
   let { duration } = body.call
   let durationFormatted = prettyMs(duration * 1000)
   let start = moment(body.call.startTime)
@@ -157,7 +168,7 @@ async function doSyncOne (contact, body, formData, isManuallySync) {
   let ed = end.format('MM/DD/YYYY')
   let et = end.format('h:ma')
   const sid = _.get(body, 'call.telephonySessionId')
-  const key = buildKey(sid)
+  const key = buildKey(sid, contactId)
   const ig = await ls.get(key)
   if (ig && !isManuallySync) {
     return null
@@ -183,7 +194,7 @@ async function doSyncOne (contact, body, formData, isManuallySync) {
       isManuallySync
     })
   if (res) {
-    await saveLog(sid, 'true')
+    await saveLog(sid, 'true', contactId)
     notifySyncSuccess({ id: contactId })
   } else {
     notify('call log sync to redtailCRM failed', 'warn')
