@@ -26,7 +26,8 @@ import {
 import {
   getContacts,
   fetchAllContacts,
-  showContactInfoPanel
+  showContactInfoPanel,
+  showSyncCount
 } from './feat/contacts.js'
 import * as ls from 'ringcentral-embeddable-extension-common/src/common/ls'
 import {
@@ -159,10 +160,13 @@ export async function thirdPartyServiceConfig (serviceName) {
     }
     if (
       type === 'rc-route-changed-notify' &&
-      path === '/contacts' &&
-      !window.rc.local.apiKey
+      path === '/contacts'
     ) {
-      showAuthBtn()
+      if (!window.rc.local.apiKey) {
+        showAuthBtn()
+      } else {
+        showSyncCount()
+      }
     } else if (
       type === 'rc-route-changed-notify' &&
       path === '/history'
