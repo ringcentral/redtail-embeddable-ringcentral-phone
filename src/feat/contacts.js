@@ -231,7 +231,7 @@ function loadingContacts () {
   })
 }
 
-function stopLoadingContacts () {
+function notifyFinished () {
   Modal.info({
     title: 'Contacts data synced',
     content: 'Now call log could be logged to right contact.'
@@ -293,13 +293,12 @@ export async function fetchAllContacts (_getRecent) {
     console.log('fetching page:', start)
     await getContact(start, getRecent)
   }
-  stopLoadingContacts()
   isFetchingAllContacts = false
   if (!getRecent) {
     await setCache(lastSync, 0, 'never')
   }
   notifyReSyncContacts()
-  notify('Syncing contacts done', 'info', 3000)
+  notifyFinished()
 }
 
 async function updateTimeStamp () {
