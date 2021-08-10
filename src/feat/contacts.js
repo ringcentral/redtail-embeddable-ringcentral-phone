@@ -29,7 +29,7 @@ import {
 } from 'ringcentral-embeddable-extension-common/src/common/db'
 import { thirdPartyConfigs } from 'ringcentral-embeddable-extension-common/src/common/app-config'
 import * as ls from 'ringcentral-embeddable-extension-common/src/common/ls'
-import { notification } from 'antd'
+import { notification, Modal } from 'antd'
 // import { createAll } from './add-contacts'
 // createAll()
 
@@ -213,15 +213,29 @@ async function getPages (getRecent) {
 }
 
 function loadingContacts () {
-  notify(
-    'Fetching contacts list, may take minutes, please stay in this page until it is done.',
-    'info',
-    1000 * 60 * 60
-  )
+  Modal.info({
+    title: 'Fetching contacts list...',
+    content: (
+      <div>
+        <p>
+          This may take minutes, please keep this page open, until it is done, you open another browser tab to continue your work.
+        </p>
+        <p>
+          * If not finished, it will start sync from last break point after reload.
+        </p>
+        <p>
+          * The contacts data will only be stored in your current browser, and be used to matching phone number and contact so the Chrome extension could log calls to right contact.
+        </p>
+      </div>
+    )
+  })
 }
 
 function stopLoadingContacts () {
-  notify('Contacts data synced', 2000)
+  Modal.info({
+    title: 'Contacts data synced',
+    content: 'Now call log could be logged to right contact.'
+  })
 }
 
 /**
