@@ -14,7 +14,7 @@
     "docs-p": "mkdocs gh-deploy",
     "deploy": "npm run docs-b && npm run docs-p",
     "down": "node bin/download-adapter.js",
-    "pack": "rm -rf dist && NODE_ENV=production ./node_modules/.bin/webpack && npm run down && node bin/pack"
+    "pack": "rm -rf dist *.zip && NODE_ENV=production ./node_modules/.bin/webpack  --config build/webpack.config.js && npm run down && node bin/pack"
   },
   "keywords": [
     "RingCentral",
