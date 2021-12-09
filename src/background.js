@@ -12,7 +12,7 @@ export function checkTab (tab) {
     /^https:\/\/.+\.redtailtechnology.com/.test(tab.url)
 }
 
-let list = []
+const list = []
 if (thirdPartyConfigs.upgradeServer) {
   list.push(
     new RegExp(

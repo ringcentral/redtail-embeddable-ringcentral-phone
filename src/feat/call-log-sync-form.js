@@ -51,7 +51,7 @@ export async function getContactInfo (body, serviceName) {
     toText = 'Correspondents'
     tos = _.get(body, 'correspondentEntity')
     tos = tos ? [tos] : []
-    let selfNumber = getFullNumber(_.get(body, 'conversation.self'))
+    const selfNumber = getFullNumber(_.get(body, 'conversation.self'))
     froms = await match([selfNumber])
     froms = froms[selfNumber] || []
     time = _.get(body, 'conversation.date')
@@ -70,7 +70,7 @@ export async function getContactInfo (body, serviceName) {
     froms = ''
   } else {
     froms = froms.join(', ')
-    let f = formatPhoneLocal(getFullNumber(_.get(body, 'call.from')) || getFullNumber(_.get(body, 'conversation.self')))
+    const f = formatPhoneLocal(getFullNumber(_.get(body, 'call.from')) || getFullNumber(_.get(body, 'conversation.self')))
     froms = `<li>
       ${fromText}: <b>${f}${froms ? '(' + froms + ')' : ''}</b>
     </li>`
@@ -82,7 +82,7 @@ export async function getContactInfo (body, serviceName) {
     tos = ''
   } else {
     tos = tos.join(', ')
-    let t = formatPhoneLocal(getFullNumber(_.get(body, 'call.to')))
+    const t = formatPhoneLocal(getFullNumber(_.get(body, 'call.to')))
     tos = `<li>
       ${toText}: <b>${t}${tos ? '(' + tos + ')' : '-'}</b>
     </li>
@@ -106,13 +106,13 @@ export async function createForm (body, serviceName, onSubmit) {
     return
   }
   clean()
-  let res = await getContactInfo(body, serviceName)
+  const res = await getContactInfo(body, serviceName)
   if (!res) {
     return notify('No related contact')
   }
-  let { froms, tos, time } = res
+  const { froms, tos, time } = res
   // let wrapper = document.getElementById('rc-widget')
-  let dom = createElementFromHTML(`
+  const dom = createElementFromHTML(`
     <form class="rc-sync-form animate" id="rc-sync-form">
       <div class="rc-sync-inner rc-pd2">
         <h4 class="rc-sync-title rc-pd1b">
@@ -138,7 +138,7 @@ export async function createForm (body, serviceName, onSubmit) {
   `)
   dom.onsubmit = e => {
     e.preventDefault()
-    let v = dom.querySelector('#rc-sync-form .rc-sync-area').value
+    const v = dom.querySelector('#rc-sync-form .rc-sync-area').value
     onSubmit({
       description: v || ''
     })
@@ -149,7 +149,7 @@ export async function createForm (body, serviceName, onSubmit) {
   //   e.preventDefault()
   //   onSubmit()
   // }
-  let old = document.getElementById('rc-sync-form')
+  const old = document.getElementById('rc-sync-form')
   old && old.remove()
   document.body.appendChild(dom)
   handler = setTimeout(() => {

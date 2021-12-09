@@ -13,11 +13,11 @@ export async function getContactInfo (ids) {
   if (!ids) {
     return []
   }
-  let {
+  const {
     vid
   } = ids
   // https://smf.crm3.redtailtechnology.com/contacts/10
-  let url = `${host}/contacts/${vid}`
+  const url = `${host}/contacts/${vid}`
   return fetch.get(url, {
     headers: {
       Accept: 'text/html'
@@ -40,7 +40,7 @@ export function getXid () {
 }
 
 export function getCSRF () {
-  let dom = document.querySelector('meta[name="csrf-token"]')
+  const dom = document.querySelector('meta[name="csrf-token"]')
   return dom
     ? dom.getAttribute('content')
     : ''
@@ -57,11 +57,11 @@ export function wait (ms) {
 }
 
 function formatNumbers (res) {
-  let re = $(res)
-  let final = []
+  const re = $(res)
+  const final = []
   re.find('.contact-phones .number').each(function (i) {
-    let t = $(this)
-    let number = t.text().trim()
+    const t = $(this)
+    const number = t.text().trim()
     if (checkPhoneNumber(number)) {
       final.push({
         id: i,
@@ -74,14 +74,14 @@ function formatNumbers (res) {
 }
 
 export async function getNumbers (ids) {
-  let res = await getContactInfo(ids)
+  const res = await getContactInfo(ids)
   return res ? formatNumbers(res) : []
 }
 
 export function getUserId () {
-  let reg = /currentUserId: (\d+),/
-  let arr = document.documentElement.outerHTML.match(reg) || []
-  let id = arr[1]
+  const reg = /currentUserId: (\d+),/
+  const arr = document.documentElement.outerHTML.match(reg) || []
+  const id = arr[1]
   return id || ''
 }
 
@@ -94,7 +94,7 @@ export const autoLogPrefix = 'rc-auto-log-id:'
 export function buildFormData (data) {
   return Object.keys(data)
     .reduce((prev, k, i) => {
-      let v = data[k]
+      const v = data[k]
       return prev +
         (i ? '&' : '') +
         encodeURIComponent(k) +

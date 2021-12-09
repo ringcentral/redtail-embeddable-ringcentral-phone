@@ -24,8 +24,7 @@ import $ from 'jquery'
 import {
   insert,
   getByPage,
-  match,
-  count
+  match
 } from 'ringcentral-embeddable-extension-common/src/common/db'
 import { thirdPartyConfigs } from 'ringcentral-embeddable-extension-common/src/common/app-config'
 import * as ls from 'ringcentral-embeddable-extension-common/src/common/ls'
@@ -33,13 +32,13 @@ import { notification, Modal } from 'antd'
 // import { createAll } from './add-contacts'
 // createAll()
 
-let {
+const {
   serviceName
 } = thirdPartyConfigs
 let isFetchingAllContacts = false
 // let syncHanlder = null
 const lastSyncPage = 'last-sync-page'
-let upsert = true
+const upsert = true
 const final = {
   result: [],
   hasMore: false
@@ -66,8 +65,8 @@ function notifyReSyncContacts () {
  * @param {Event} e
  */
 function onClickContactPanel (e) {
-  let { target } = e
-  let { classList } = target
+  const { target } = e
+  const { classList } = target
   if (classList.contains('rc-close-contact')) {
     document
       .querySelector('.rc-contact-panel')
@@ -76,7 +75,7 @@ function onClickContactPanel (e) {
 }
 
 function onloadIframe () {
-  let dom = document
+  const dom = document
     .querySelector('.rc-contact-panel')
   dom && dom.classList.add('rc-contact-panel-loaded')
 }
@@ -92,9 +91,9 @@ async function getContactDetail (id, name, page) {
       vid: id
     })
   }
-  let re = $(html)
-  let trs = re.find('.contact-phones tr, .contact-emails tr')
-  let res = {
+  const re = $(html)
+  const trs = re.find('.contact-phones tr, .contact-emails tr')
+  const res = {
     id,
     name,
     type: serviceName,
@@ -102,13 +101,13 @@ async function getContactDetail (id, name, page) {
     emails: []
   }
   trs.each(function () {
-    let t = $(this)
-    let id = t.prop('id')
-    let isPhone = id.includes('phone')
-    let isEmail = id.includes('email')
+    const t = $(this)
+    const id = t.prop('id')
+    const isPhone = id.includes('phone')
+    const isEmail = id.includes('email')
     if (isPhone) {
-      let n = t.find('.number')
-      let txt = n.text().trim()
+      const n = t.find('.number')
+      const txt = n.text().trim()
       if (checkPhoneNumber(txt)) {
         res.phoneNumbers.push({
           phoneNumber: txt,
@@ -116,8 +115,8 @@ async function getContactDetail (id, name, page) {
         })
       }
     } else if (isEmail) {
-      let n = t.find('.email-address')
-      let txt = n.text().trim()
+      const n = t.find('.email-address')
+      const txt = n.text().trim()
       if (txt) {
         res.emails.push(txt)
       }
@@ -137,22 +136,22 @@ async function getContactDetail (id, name, page) {
  * getContactsDetails
  */
 async function getContactsDetails (html, page) {
-  let re = $(html)
-  let list = []
+  const re = $(html)
+  const list = []
   re.find('#contact-list tr').each(function () {
-    let t = $(this)
-    let nameWrap = t.find('.Name a')
-    let name = nameWrap.text().trim()
-    let href = nameWrap.prop('href')
-    let id = getIdfromHref(href)
+    const t = $(this)
+    const nameWrap = t.find('.Name a')
+    const name = nameWrap.text().trim()
+    const href = nameWrap.prop('href')
+    const id = getIdfromHref(href)
     list.push({
       name,
       id
     })
   })
   console.log('contact page list for page', page, list)
-  for (let item of list) {
-    let { id } = item
+  for (const item of list) {
+    const { id } = item
     await getContactDetail(id, item.name, page).catch(console.log)
   }
 }
@@ -169,7 +168,7 @@ async function getContact (page = 1, getRecent) {
   if (page) {
     url = `${url}?page=${page}`
   }
-  let res = await fetch.get(url, {
+  const res = await fetch.get(url, {
     headers: {
       Accept: 'text/html'
     }
@@ -186,9 +185,9 @@ async function getContact (page = 1, getRecent) {
 }
 
 async function getPages (getRecent) {
-  let url = `${host}/contacts` +
+  const url = `${host}/contacts` +
     (getRecent ? '/recently_added' : '')
-  let res = await fetch.get(url, {
+  const res = await fetch.get(url, {
     headers: {
       Accept: 'text/html'
     }
@@ -252,7 +251,7 @@ export const getContacts = async function (
   if (!window.rc.rcLogined) {
     return final
   }
-  let cached = await getByPage(page).catch(e => console.log(e.stack))
+  const cached = await getByPage(page).catch(e => console.log(e.stack))
   if (cached && cached.result && cached.result.length) {
     console.debug('use cache')
     return cached
@@ -280,7 +279,7 @@ export async function fetchAllContacts (_getRecent) {
   if (page > 1) {
     getRecent = false
   }
-  let pages = await getPages(getRecent)
+  const pages = await getPages(getRecent)
   console.log('last fetching page:', page)
   console.log('pages:', pages)
   const len = pages.length
@@ -307,7 +306,7 @@ async function updateTimeStamp () {
   return ls.set('rc-sync-timestamp', now)
 }
 export function hideContactInfoPanel () {
-  let dom = document
+  const dom = document
     .querySelector('.rc-contact-panel')
   dom && dom.classList.add('rc-hide-to-side')
 }
@@ -330,8 +329,8 @@ export async function showContactInfoPanel (call) {
     return
   }
   phone = formatPhone(phone)
-  let contacts = await match([phone])
-  let contact = _.get(contacts, `${phone}[0]`)
+  const contacts = await match([phone])
+  const contact = _.get(contacts, `${phone}[0]`)
   if (!contact) {
     return
   }
@@ -339,9 +338,9 @@ export async function showContactInfoPanel (call) {
   // if (contactTrLinkElem) {
   //   return showNativeContact(contact, contactTrLinkElem)
   // }
-  let { host, protocol } = window.location
-  let url = `${protocol}//${host}/contacts/${contact.id}`
-  let elem = createElementFromHTML(
+  const { host, protocol } = window.location
+  const url = `${protocol}//${host}/contacts/${contact.id}`
+  const elem = createElementFromHTML(
     `
     <div class="animate rc-contact-panel" draggable="false">
       <div class="rc-close-box">
@@ -362,7 +361,7 @@ export async function showContactInfoPanel (call) {
   )
   elem.onclick = onClickContactPanel
   elem.querySelector('iframe').onload = onloadIframe
-  let old = document
+  const old = document
     .querySelector('.rc-contact-panel')
   old && old.remove()
 

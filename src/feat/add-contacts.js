@@ -175,21 +175,21 @@ export async function addContact ({
     .map(d => d.trim())
     .filter(d => d)
     .map(s => {
-      let arr = s.split(':')
-      let len = arr.length
-      let name = arr.slice(0, len - 1).join(':')
-      let value = arr[len - 1].trim()
+      const arr = s.split(':')
+      const len = arr.length
+      const name = arr.slice(0, len - 1).join(':')
+      const value = arr[len - 1].trim()
       return {
         name,
         value
       }
     })
     .reduce((prev, obj, i) => {
-      let f = i ? '&' : ''
+      const f = i ? '&' : ''
       return `${prev}${f}${encodeURIComponent(obj.name)}=${encodeURIComponent(obj.value)}`
     }, '')
   const url = `${host}/contacts/individuals`
-  let res = await fetch.post(url, {}, {
+  const res = await fetch.post(url, {}, {
     headers: {
       Accept: '*/*;q=0.5, text/javascript, application/javascript, application/ecmascript, application/x-ecmascript',
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',

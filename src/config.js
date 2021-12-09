@@ -45,16 +45,16 @@ import { resyncCheck } from './lib/auto-resync'
 // import { createAll } from './feat/add-contacts'
 // createAll()
 
-let {
+const {
   pageSize
 } = thirdPartyConfigs
 
 setTimeout(upgrade, 999)
 
 function getIds (href) {
-  let reg = /\/contacts\/(\d+)/
-  let arr = href.match(reg) || []
-  let vid = arr[1]
+  const reg = /\/contacts\/(\d+)/
+  const arr = href.match(reg) || []
+  const vid = arr[1]
   if (!vid) {
     return null
   }
@@ -79,11 +79,11 @@ export const hoverShowClickToCallButton = [
     selector: '#contact-list tr',
 
     getContactPhoneNumbers: async elem => {
-      let linkElem = elem.querySelector('td.Name a')
-      let href = linkElem
+      const linkElem = elem.querySelector('td.Name a')
+      const href = linkElem
         ? linkElem.getAttribute('href')
         : ''
-      let ids = getIds(href)
+      const ids = getIds(href)
       return getNumbers(ids)
     }
   }
@@ -109,7 +109,7 @@ export async function thirdPartyServiceConfig (serviceName) {
   console.log(serviceName)
   const logType = await ls.get('rc-logType') || 'ACT'
   const noLogInbound = await ls.get('rc-no-log-inbound') || false
-  let services = {
+  const services = {
     name: serviceName,
     // show contacts in ringcentral widgets
     contactsPath: '/contacts',
@@ -147,13 +147,13 @@ export async function thirdPartyServiceConfig (serviceName) {
   // check https://github.com/zxdong262/pipedrive-embeddable-ringcentral-phone-nospa/blob/master/src/config.js
   // as example
   // read our document about third party features https://github.com/ringcentral/ringcentral-embeddable/blob/master/docs/third-party-service-in-widget.md
-  let handleRCEvents = async e => {
-    let { data } = e
+  const handleRCEvents = async e => {
+    const { data } = e
     console.debug(data)
     if (!data) {
       return
     }
-    let { type, loggedIn, path, call, sessionIds } = data
+    const { type, loggedIn, path, call, sessionIds } = data
     if (type === 'rc-login-status-notify') {
       console.debug('rc logined', loggedIn)
       window.rc.rcLogined = loggedIn
@@ -214,15 +214,15 @@ export async function thirdPartyServiceConfig (serviceName) {
       window.rc.noLogInbound = noLogInbound
       await ls.set('rc-no-log-inbound', window.rc.noLogInbound)
     } else if (path === '/contacts') {
-      let isMannulSync = _.get(data, 'body.type') === 'manual'
+      const isMannulSync = _.get(data, 'body.type') === 'manual'
       if (isMannulSync) {
         window.postMessage({
           type: 'rc-show-sync-menu'
         }, '*')
       }
-      let page = _.get(data, 'body.page') || 1
-      let contacts = await getContacts(page)
-      let nextPage = ((contacts.count || 0) - page * pageSize > 0) || contacts.hasMore
+      const page = _.get(data, 'body.page') || 1
+      const contacts = await getContacts(page)
+      const nextPage = ((contacts.count || 0) - page * pageSize > 0) || contacts.hasMore
         ? page + 1
         : null
       window.rc.postMessage({
@@ -238,7 +238,7 @@ export async function thirdPartyServiceConfig (serviceName) {
         return showAuthBtn()
       }
       let contacts = []
-      let keyword = _.get(data, 'body.searchString')
+      const keyword = _.get(data, 'body.searchString')
       if (keyword) {
         contacts = await search(keyword)
       }
@@ -253,8 +253,8 @@ export async function thirdPartyServiceConfig (serviceName) {
       if (!window.rc.local.apiKey) {
         return showAuthBtn()
       }
-      let phoneNumbers = _.get(data, 'body.phoneNumbers') || []
-      let res = await match(phoneNumbers)
+      const phoneNumbers = _.get(data, 'body.phoneNumbers') || []
+      const res = await match(phoneNumbers)
       window.rc.postMessage({
         type: 'rc-post-message-response',
         responseId: data.requestId,
@@ -307,7 +307,7 @@ export async function initThirdParty () {
   if (syncTimeStamp) {
     window.rc.syncTimeStamp = syncTimeStamp
   }
-  let apiKey = await ls.get(lsKeys.apiKeyLSKey) || ''
+  const apiKey = await ls.get(lsKeys.apiKeyLSKey) || ''
   window.rc.local = {
     apiKey
   }

@@ -15,14 +15,14 @@ import {
 } from './common'
 
 export function showActivityDetail (body) {
-  let { activity = {} } = body
-  let {
+  const { activity = {} } = body
+  const {
     subject,
     id
   } = activity
   const [uid, aid] = id.split('_')
   const url = `${host}/contacts/${uid}/activities/${aid}`
-  let msg = `
+  const msg = `
     <div>
       <div class="rc-pd1b">
         <a href="${url}" target="_blank">
@@ -38,20 +38,20 @@ export function showActivityDetail (body) {
 }
 
 export async function getActivities (body) {
-  let uid = _.get(body, 'contact.id')
+  const uid = _.get(body, 'contact.id')
   if (!uid) {
     return []
   }
   console.log('body', body)
-  let html = await getContactInfo({
+  const html = await getContactInfo({
     vid: uid
   })
-  let re = $(html)
-  let res = []
-  let list = re.find('#contact-timeline2-content tr')
+  const re = $(html)
+  const res = []
+  const list = re.find('#contact-timeline2-content tr')
   list.each(function () {
-    let t = $(this)
-    let id = t.data('id').toString()
+    const t = $(this)
+    const id = t.data('id').toString()
     let time = t.children()
       .eq(1).text().trim()
       .replace(/ +/, ' ')
@@ -64,8 +64,8 @@ export async function getActivities (body) {
       time = time.replace(today, pre)
     }
     time = moment(time, 'MMM DD h:mm A').valueOf()
-    let titleNode = t.children().eq(2).find('a')
-    let subject = titleNode.text()
+    const titleNode = t.children().eq(2).find('a')
+    const subject = titleNode.text()
     // let url = titleNode.prop('href')
     res.push({
       id: `${uid}_${id}`,

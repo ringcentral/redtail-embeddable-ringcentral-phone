@@ -88,7 +88,7 @@ export async function logNote ({
     'crm_note[body]': body,
     'crm_note[category_id]': 2,
     'crm_note[note_type]': 1,
-    'new_contact_name': '',
+    new_contact_name: '',
     'crm_note[note_associations_attributes][0][noteable_type]': 'Crm::Account',
     'crm_note[note_associations_attributes][0][_destroy]': 1,
     notify_user_id: '',
@@ -99,18 +99,18 @@ export async function logNote ({
     'crm_note[permissions_attributes][0][_destroy]': 1,
     'crm_note[permissions_attributes][0][ability]': 'can',
     'crm_note[permissions_attributes][0][action]': 'manage',
-    'followup_activity_template': '',
+    followup_activity_template: '',
     note_doc_ids: '',
-    'view_mode_uploader': 'on',
-    'uploader_count': 0,
-    'draft_edit_url': '',
-    'draft_id': '',
+    view_mode_uploader: 'on',
+    uploader_count: 0,
+    draft_edit_url: '',
+    draft_id: '',
     'crm_note[include_spouse]': '',
     commit: 'Save Note'
   }
 
-  let url = `${host}/contacts/${contactId}/notes`
-  let res = await fetch.post(url, {}, {
+  const url = `${host}/contacts/${contactId}/notes`
+  const res = await fetch.post(url, {}, {
     headers: {
       Accept: '*/*;q=0.5, text/javascript, application/javascript, application/ecmascript, application/x-ecmascript',
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -136,7 +136,7 @@ export async function logActivity ({
   isManuallySync
 }) {
   const title = isManuallySync ? 'Call log' : 'Auto Call log'
-  let data = {
+  const data = {
     utf8: '✓',
     contact_name: contactName,
     contact_id: contactId,
@@ -160,8 +160,8 @@ export async function logActivity ({
     commit: 'Create Activity'
   }
 
-  let url = `${host}/activities`
-  let res = await fetch.post(url, {}, {
+  const url = `${host}/activities`
+  const res = await fetch.post(url, {}, {
     headers: {
       Accept: '*/*;q=0.5, text/javascript, application/javascript, application/ecmascript, application/x-ecmascript',
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',

@@ -11,9 +11,9 @@ import {
   APIKEYLS
 } from './common'
 
-let currentUserId = getUserId()
+const currentUserId = getUserId()
 
-export let lsKeys = {
+export const lsKeys = {
   apiKeyLSKey: APIKEYLS
 }
 window.rc = {
@@ -27,7 +27,7 @@ window.rc = {
 
 export async function updateToken (newToken, type = 'apiKey') {
   window.rc.local[type] = newToken
-  let key = lsKeys[`${type}LSKey`]
+  const key = lsKeys[`${type}LSKey`]
   await ls.set(key, newToken)
 }
 
