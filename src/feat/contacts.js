@@ -371,9 +371,9 @@ export async function showContactInfoPanel (call) {
 }
 
 export async function showSyncCount () {
-  const n = await count()
+  const { count } = await getByPage(1, 1)
   notification.info({
-    message: `${n} contacts synced`,
+    message: `${count} contacts synced`,
     placement: 'bottomLeft'
   })
 }
