@@ -34,7 +34,7 @@ Created with [ringcentral-embeddable-extension-factory](https://github.com/ringc
 git clone https://github.com/ringcentral/redtail-embeddable-ringcentral-phone.git
 cd redtail-embeddable-ringcentral-phone
 npm i
-cp config.sample.js config.js
+cp sample.env .env # then fill all required fields
 
 # download embeddable
 npm run down
@@ -50,20 +50,9 @@ npm start
 
 ## Build with custom RingCentral clientID/appServer
 
-- Create an app from [https://developer.ringcentral.com/](https://developer.ringcentral.com/), make sure you choose a browser based app, and set all permissions, and add `https://ringcentral.github.io/ringcentral-embeddable/redirect.html` to your redirect URI list, Edit `config.js`,
+- Create an app from [https://developer.ringcentral.com/](https://developer.ringcentral.com/), make sure you choose a browser based app, and set all permissions, and add `https://ringcentral.github.io/ringcentral-embeddable/redirect.html` to your redirect URI list, Edit `.env`,
 
-- Fill your RingCentral app's clientID and appServer in `config.js`
-
-```js
-
-  ringCentralConfigs: {
-    // your ringCentral app's Client ID
-    clientID: 'your-clientID',
-
-    // your ringCentral app's Auth Server URL
-    appServer: 'your ringCentral app Auth Server URL'
-  },
-```
+- Fill your RingCentral app's clientID and appServer in `.env`
 
 ## Credits
 
