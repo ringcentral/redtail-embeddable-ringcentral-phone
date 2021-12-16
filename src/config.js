@@ -215,12 +215,23 @@ export async function thirdPartyServiceConfig (serviceName) {
       await ls.set('rc-no-log-inbound', window.rc.noLogInbound)
     } else if (path === '/contacts') {
       const isMannulSync = _.get(data, 'body.type') === 'manual'
-      if (isMannulSync) {
+      const page = _.get(data, 'body.page') || 1
+      if (isMannulSync && page === 1) {
         window.postMessage({
           type: 'rc-show-sync-menu'
         }, '*')
+        return window.rc.postMessage({
+          type: 'rc-post-message-response',
+          responseId: data.requestId,
+          response: {
+            data: []
+          }
+        })
       }
-      const page = _.get(data, 'body.page') || 1
+      window.postMessage({
+        type: 'rc-transferring-data',
+        transferringData: true
+      }, '*')
       const contacts = await getContacts(page)
       const nextPage = ((contacts.count || 0) - page * pageSize > 0) || contacts.hasMore
         ? page + 1
