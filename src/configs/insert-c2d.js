@@ -7,7 +7,7 @@
  *
  */
 
-export * from './configs/convert-c2d'
-export * from './configs/hover-c2d'
-export * from './configs/insert-c2d'
-export * from './configs/third-party'
+// insert click to call button
+export const insertClickToCallButton = [
+
+]

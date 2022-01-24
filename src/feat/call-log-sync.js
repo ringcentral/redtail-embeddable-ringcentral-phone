@@ -2,8 +2,6 @@
  * call log sync feature
  */
 
-import { thirdPartyConfigs } from 'ringcentral-embeddable-extension-common/src/common/app-config'
-import { createForm, getContactInfo } from './call-log-sync-form'
 import moment from 'moment'
 import extLinkSvg from 'ringcentral-embeddable-extension-common/src/common/link-external.svg'
 import {
@@ -13,8 +11,7 @@ import _ from 'lodash'
 import prettyMs from 'pretty-ms'
 import {
   notify,
-  host,
-  formatPhone
+  host
 } from 'ringcentral-embeddable-extension-common/src/common/helpers'
 import {
   match
@@ -22,10 +19,14 @@ import {
 import * as ls from 'ringcentral-embeddable-extension-common/src/common/ls'
 import { logNote, logActivity } from './log-call'
 import { getFullNumber } from './common'
-const {
-  showCallLogSyncForm,
-  serviceName
-} = thirdPartyConfigs
+import { getContactInfo } from '../common/contact-info-parse'
+import copy from 'json-deep-copy'
+
+function buildId (body) {
+  return body.id ||
+  _.get(body, 'call.sessionId') ||
+  _.get(body, 'conversation.conversationLogId')
+}
 
 function buildKey (id, cid) {
   return `rc-log-${window.rc.currentUserId}-${id}-${cid}`
@@ -34,42 +35,6 @@ function buildKey (id, cid) {
 async function saveLog (id, engageId, cid) {
   const key = buildKey(id, cid)
   await ls.set(key, engageId)
-}
-
-async function getSyncContacts (body) {
-  // let objs = _.filter(
-  //   [
-  //     ..._.get(body, 'call.toMatches') || [],
-  //     ..._.get(body, 'call.fromMatches') || [],
-  //     ...(_.get(body, 'correspondentEntity') ? [_.get(body, 'correspondentEntity')] : [])
-  //   ],
-  //   m => m.type === serviceName
-  // )
-  // if (objs.length) {
-  //   return objs
-  // }
-  let all = []
-  if (body.call) {
-    const nf = getFullNumber(_.get(body, 'to')) ||
-      getFullNumber(_.get(body, 'call.to'))
-    const nt = getFullNumber(_.get(body, 'from')) ||
-      getFullNumber(_.get(body.call, 'from'))
-    all = [nt, nf]
-  } else {
-    all = [
-      getFullNumber(_.get(body, 'conversation.self')),
-      ...body.conversation.correspondents.map(d => getFullNumber(d))
-    ]
-  }
-  all = all.map(s => formatPhone(s))
-  const contacts = await match(all)
-  const arr = Object.keys(contacts).reduce((p, k) => {
-    return [
-      ...p,
-      ...contacts[k]
-    ]
-  }, [])
-  return _.uniqBy(arr, d => d.id)
 }
 
 function notifySyncSuccess ({
@@ -105,24 +70,44 @@ export async function syncCallLogToRedtail (body) {
   if (!isAutoSync && !isManuallySync) {
     return
   }
+  if (_.get(body, 'sessionIds')) {
+    return
+  }
   if (!window.rc.local.apiKey) {
     return isManuallySync ? showAuthBtn() : null
   }
-  if (showCallLogSyncForm && isManuallySync) {
-    const contactRelated = await getContactInfo(body, serviceName)
-    if (
-      !contactRelated ||
-      (!contactRelated.froms && !contactRelated.tos)
-    ) {
-      return notify('No related contact')
+  const id = buildId(body)
+  const info = await getContactInfo(body)
+  let relatedContacts = await match(info.numbers)
+  relatedContacts = _.flatten(
+    Object.values(relatedContacts)
+  )
+  for (const c of relatedContacts) {
+    const obj = {
+      type: 'rc-init-call-log-form',
+      isManuallySync,
+      callLogProps: {
+        relatedContacts: [c],
+        info,
+        id,
+        isManuallySync,
+        body
+      }
     }
-    return createForm(
-      body,
-      serviceName,
-      (formData) => doSync(body, formData, isManuallySync)
-    )
-  } else {
-    doSync(body, {})
+    if (isManuallySync) {
+      if (
+        !relatedContacts ||
+        !relatedContacts.length
+      ) {
+        const b = copy(body)
+        Object.assign(b, info)
+        b.type = 'rc-show-add-contact-panel'
+        return window.postMessage(b, '*')
+      }
+      window.postMessage(obj, '*')
+    } else {
+      window.postMessage(obj, '*')
+    }
   }
 }
 
@@ -133,10 +118,15 @@ export async function syncCallLogToRedtail (body) {
  * @param {*} body
  * @param {*} formData
  */
-async function doSync (body, formData, isManuallySync) {
-  const contacts = await getSyncContacts(body)
-  if (!contacts.length) {
-    return notify('No related contacts')
+export async function doSync (
+  body,
+  formData,
+  isManuallySync,
+  contacts,
+  info
+) {
+  if (!contacts || !contacts.length) {
+    return false
   }
   for (const contact of contacts) {
     await doSyncOne(contact, body, formData, isManuallySync)
@@ -168,11 +158,7 @@ async function doSyncOne (contact, body, formData, isManuallySync) {
   const ed = end.format('MM/DD/YYYY')
   const et = end.format('h:ma')
   const sid = _.get(body, 'call.telephonySessionId')
-  const key = buildKey(sid, contactId)
-  const ig = await ls.get(key)
-  if (ig && !isManuallySync) {
-    return null
-  }
+  // const key = buildKey(sid, contactId)
   const res = window.rc.logType === 'NOTE'
     ? await logNote({
         contactId,
