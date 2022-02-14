@@ -231,12 +231,12 @@ function loadingContacts () {
 }
 
 function notifyFinished () {
-  Modal.info({
-    title: 'Contacts data synced',
-    content: 'Now call log could be logged to right contact.'
+  notification.success({
+    message: 'Contacts data synced, Now call log could be logged to right contact.'
   })
 }
 
+notifyFinished()
 /**
  * get contact lists
  */
