@@ -28,7 +28,7 @@ import {
 } from 'ringcentral-embeddable-extension-common/src/common/db'
 import { thirdPartyConfigs } from 'ringcentral-embeddable-extension-common/src/common/app-config'
 import * as ls from 'ringcentral-embeddable-extension-common/src/common/ls'
-import { notification, Modal } from 'antd'
+import { notification } from 'antd'
 // import { createAll } from './add-contacts'
 // createAll()
 
