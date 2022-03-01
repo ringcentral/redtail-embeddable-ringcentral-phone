@@ -212,9 +212,10 @@ async function getPages (getRecent) {
 }
 
 function loadingContacts () {
-  Modal.info({
-    title: 'Fetching contacts list...',
-    content: (
+  notification.info({
+    message: 'Fetching contacts list...',
+    duration: 10,
+    description: (
       <div>
         <p>
           This may take minutes, please keep this page open, until it is done, you open another browser tab to continue your work.
@@ -236,7 +237,6 @@ function notifyFinished () {
   })
 }
 
-notifyFinished()
 /**
  * get contact lists
  */
