@@ -74,7 +74,16 @@ export default () => {
       note: e.target.value
     })
   }
+  function onUnload (e) {
+    if (window.rc.calling) {
+      // Cancel the event
+      e.preventDefault()
+      e.returnValue = ''
+      return 'Need confirm'
+    }
+  }
   useEffect(() => {
+    window.addEventListener('beforeunload', onUnload)
     window.addEventListener('message', onEvent)
     return () => {
       window.removeEventListener('message', onEvent)

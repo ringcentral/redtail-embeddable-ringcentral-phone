@@ -100,7 +100,7 @@ export async function thirdPartyServiceConfig (serviceName) {
     if (!data) {
       return
     }
-    const { type, loggedIn, path, call, sessionIds } = data
+    const { type, loggedIn, path, call, sessionIds, telephonyStatus } = data
     if (type === 'rc-login-status-notify') {
       console.debug('rc logined', loggedIn)
       window.rc.rcLogined = loggedIn
@@ -122,6 +122,12 @@ export async function thirdPartyServiceConfig (serviceName) {
         type: 'rc-adapter-trigger-call-logger-match',
         sessionIds
       })
+    } else if (type === 'rc-adapter-syncPresence') {
+      if (telephonyStatus === 'Ringing') {
+        window.rc.calling = true
+      } else if (telephonyStatus === 'NoCall') {
+        window.rc.calling = false
+      }
     } else if (
       type === 'rc-active-call-notify'
     ) {
